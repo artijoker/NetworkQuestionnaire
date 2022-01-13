@@ -1,0 +1,184 @@
+<Window x:Class="UserClient.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:UserClient"
+        xmlns:lib ="clr-namespace:Library;assembly=Library"
+        mc:Ignorable="d"
+        Title="MainWindow" 
+        Height="570" 
+        Width="800"
+        MinHeight="550"
+        MinWidth="600">
+    <Window.Resources>
+        <Style TargetType="TextBlock">
+            <Setter Property="TextBlock.FontSize" Value="20"/>
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="LightSalmon"/>
+            <Setter Property="Button.Padding" Value="12"/>
+            <Setter Property="Button.Margin" Value="10 7"/>
+            <Setter Property="TextBlock.FontSize" Value="18"/>
+            <Style.Resources>
+                <Style TargetType="Border">
+                    <Setter Property="CornerRadius" Value="5"/>
+                    <Style.Triggers>
+                        <Trigger  Property="IsMouseOver" Value="True">
+                            <Setter  Property="CornerRadius" Value="5"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+                
+            </Style.Resources>
+            
+        </Style>
+
+        <lib:DateConverter x:Key="DateConverter"/>
+        <lib:PhoneNumberConverter x:Key="PhoneNumberConverter"/>
+    </Window.Resources>
+
+    <Grid>
+        <DockPanel>
+            <UniformGrid Columns="2">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" 
+                               HorizontalAlignment="Center" 
+                               Text="Список опросов"/>
+                    <ListBox BorderThickness="0.5"
+                             BorderBrush="Black"
+                             Margin="5"
+                             FontSize="15"
+                             ItemsSource="{Binding Surveys}"
+                             IsEnabled="{Binding IsEnabledInterface}"
+                             SelectedItem="{Binding SelectedSurvay}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Name}"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+                <DockPanel>
+                    <Button DockPanel.Dock="Bottom"
+                            Content="Пройти опрос"
+                            IsEnabled="{Binding IsEnabledInterface}"
+                            Command="{Binding TakeSurveyCommand}"/>
+                    <Button DockPanel.Dock="Bottom" 
+                            Content="Обновить список опросов"
+                            IsEnabled="{Binding IsEnabledInterface}"
+                            Command="{Binding LoadingSurveyListCommand}"/>
+                    <Border BorderBrush="Black" 
+                            BorderThickness="0.5"
+                            Background="WhiteSmoke"
+                            Margin="10">
+                        <DockPanel>
+                            <TextBlock DockPanel.Dock="Top" 
+                                       HorizontalAlignment="Center"
+                                       Padding="5"
+                                       Text="Данные сотрудника"
+                                       FontSize="23"/>
+                            <Button DockPanel.Dock="Bottom"
+                                    Padding="8"
+                                    Margin="25 12"
+                                    FontSize="18"
+                                    Content="Изменить данные"
+                                    Visibility="Collapsed"
+                                    Command="{Binding ConfirmCommand}"
+                                    IsEnabled="false"/>
+                            <UniformGrid Rows ="6"  
+                                         Margin="10 0">
+                                <StackPanel>
+                                    <TextBlock FontSize="14"
+                                               Text="Имя"/>
+                                    <TextBlock Padding="0 0 0 3" 
+                                               Text="{Binding Employee.Name}"/>
+                                </StackPanel>
+                                <StackPanel>
+                                    <TextBlock FontSize="14"
+                                               Text="Фамилия"/>
+                                    <TextBlock Padding="0 0 0 3"
+                                               Text="{Binding Employee.Surname}"/>
+                                </StackPanel>
+                                <StackPanel Visibility="{Binding VisibilityPatronymic}">
+                                    <TextBlock FontSize="14"
+                                               Text="Отчество"/>
+                                    <TextBlock Padding="0 0 0 3"
+                                               Text="{Binding Employee.Patronymic}"/>
+                                </StackPanel>
+                                <StackPanel>
+                                    <TextBlock FontSize="14"
+                                               Text="Дата рождения"/>
+                                    <TextBlock Padding="0 0 0 3"
+                                               Text="{Binding Employee.BirthDate, 
+                                        Converter={StaticResource DateConverter}}"/>
+                                </StackPanel>
+                                <StackPanel>
+                                    <TextBlock FontSize="14"
+                                               Text="Номер телефона"/>
+                                    <TextBlock Padding="0 0 0 3"
+                                               Text="{Binding Employee.PhoneNumber, 
+                                        Converter={StaticResource PhoneNumberConverter}}"/>
+                                </StackPanel>
+                                <StackPanel>
+                                    <TextBlock FontSize="14"
+                                               Text="Email"/>
+                                    <TextBlock Text="{Binding Employee.Email}"/>
+                                </StackPanel>
+                            </UniformGrid>
+                        </DockPanel>
+                    </Border>
+                </DockPanel>
+            </UniformGrid>
+        </DockPanel>
+        <Border HorizontalAlignment="Center" 
+                VerticalAlignment="Center" 
+                BorderBrush="Black" 
+                BorderThickness="0.5"
+                Visibility="{Binding VisibilityProcess}">
+            <Grid Background="LightCyan" 
+                  Height="130" 
+                  Width="511">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Image Grid.Column="0"
+                       HorizontalAlignment="Center" 
+                       VerticalAlignment="Center" 
+                       Source="loading.png"
+                       RenderTransformOrigin="0.5,0.5"
+                       Margin="5"
+                       Width="120">
+                    <Image.RenderTransform>
+                        <RotateTransform x:Name="AnimatedRotateTransform" 
+                                           Angle="0"/>
+                    </Image.RenderTransform>
+                    <Image.Triggers>
+                        <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                            <EventTrigger.Actions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation 
+                                    Storyboard.TargetName="AnimatedRotateTransform"
+                                    Storyboard.TargetProperty="Angle" 
+                                    To="360" 
+                                    Duration="0:0:2" 
+                                    RepeatBehavior="Forever"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger.Actions>
+                        </EventTrigger>
+                    </Image.Triggers>
+                </Image>
+                <TextBlock Grid.Column="1"
+                           FontSize="20"
+                           TextWrapping="WrapWithOverflow"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Text="{Binding Text}"/>
+            </Grid>
+        </Border>
+    </Grid>
+    
+</Window>

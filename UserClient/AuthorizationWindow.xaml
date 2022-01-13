@@ -1,0 +1,120 @@
+﻿<Window x:Class="UserClient.AuthorizationWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:UserClient"
+        mc:Ignorable="d"
+        Title="Авторизация" Height="280" Width="330"
+        ResizeMode="NoResize"
+        Icon="survey.ico"
+        WindowStartupLocation="CenterScreen">
+    <Window.Resources>
+        <Style TargetType="TextBox">
+            <Setter Property="TextBox.Margin" Value="10 2"/>
+        </Style>
+        <Style TargetType="TextBlock">
+            <Setter Property="TextBlock.FontSize" Value="15"/>
+            <Setter Property="TextBlock.Padding" Value="10 0"/>
+            <Setter Property="TextBlock.VerticalAlignment" Value="Bottom"/>
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="LightSalmon"/>
+            <Style.Resources>
+                <Style TargetType="Border">
+                    <Setter Property="CornerRadius" Value="5"/>
+                    <Style.Triggers>
+                        <Trigger  Property="IsMouseOver" Value="True">
+                            <Setter  Property="CornerRadius" Value="5"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </Style.Resources>
+        </Style>
+    </Window.Resources>
+    <Grid>
+        <DockPanel>
+            <Button DockPanel.Dock="Bottom"
+                Padding="5"
+                Margin="10"
+                FontSize="20"
+                BorderBrush="Black"
+                Content="Войти"
+                Command="{Binding EnterCommand}"
+                IsEnabled="{Binding IsEnabledInterface}"/>
+            <TextBlock DockPanel.Dock="Top"
+                   FontSize="23"
+                   Padding="20 0"
+                   Text="Вход"/>
+            <Border BorderBrush="Black"
+                BorderThickness="0 0.5" 
+                Background="LightCyan">
+                <UniformGrid Rows="4"
+                     Margin="0 0 0 15">
+
+                    <TextBlock Text="Логин"/>
+                    <TextBox Text="{Binding Login}"
+                             IsEnabled="{Binding IsEnabledInterface}"
+                         VerticalContentAlignment = "Center"/>
+
+                    <TextBlock Text="Пароль"/>
+                    <PasswordBox Margin="10 2" PasswordChar="*"
+                                 x:Name="PasswordBox"
+                                 IsEnabled="{Binding IsEnabledInterface}"
+                                 VerticalContentAlignment = "Center"/>
+                </UniformGrid>
+            </Border>
+        </DockPanel>
+
+        <Border HorizontalAlignment="Center" 
+                VerticalAlignment="Center" 
+                BorderBrush="Black" 
+                BorderThickness="0.5"
+                Visibility="{Binding VisibilityAuthorizationProcess}">
+            <Grid Height="55"
+                  Background="LightCyan">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Image Grid.Column="0"
+                       HorizontalAlignment="Center" 
+                       VerticalAlignment="Center" 
+                       Source="loading.png"
+                       RenderTransformOrigin="0.5,0.5"
+                       Margin ="0 2"
+                       Width="70">
+                    <Image.RenderTransform>
+                        <RotateTransform x:Name="AnimatedRotateTransform" 
+                                 Angle="0"/>
+                    </Image.RenderTransform>
+                    <Image.Triggers>
+                        <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                            <EventTrigger.Actions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation 
+                                    Storyboard.TargetName="AnimatedRotateTransform"
+                                    Storyboard.TargetProperty="Angle" 
+                                    To="360" 
+                                    Duration="0:0:2" 
+                                    RepeatBehavior="Forever"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger.Actions>
+                        </EventTrigger>
+                    </Image.Triggers>
+                </Image>
+                <TextBlock Grid.Column="1" 
+                   FontSize="15"
+                   TextWrapping="Wrap"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center">
+            Подождите идет процесс авторизации
+                </TextBlock>
+            </Grid>
+        </Border>
+
+    </Grid>
+
+</Window>

@@ -1,0 +1,78 @@
+﻿<Window x:Class="AdminClient.AddEditEmployeeWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib" 
+        xmlns:local="clr-namespace:AdminClient"
+        mc:Ignorable="d"
+        Title="AddEditEmployeeWindow" Height="600" Width="500"
+        FontSize="20">
+    <Window.Resources>
+        <Style TargetType="TextBlock">
+            <Setter Property="FontSize" Value="16"/>
+        </Style>
+        <Style TargetType="StackPanel">
+            <Setter Property="Margin" Value="3"/>
+        </Style>
+    </Window.Resources>
+    <DockPanel>
+        <UniformGrid DockPanel.Dock="Bottom"
+                     Columns="2">
+            <Button Content="Сохранить"
+                    Command="{Binding SaveCommand}"/>
+            <Button Content="Отмена"/>
+        </UniformGrid>
+        <UniformGrid Rows="8">
+            <StackPanel>
+                <TextBlock Padding="0 2"
+                           Text="Фамилия*"/>
+                <TextBox Text="{Binding Employee.Surname}"/>
+            </StackPanel>
+            <StackPanel>
+                <TextBlock Padding="0 2"
+                           Text="Имя*"/>
+                <TextBox Text="{Binding Employee.Name}"/>
+            </StackPanel>
+            <StackPanel>
+                <TextBlock Padding="0 2"
+                           Text="Отчество"/>
+                <TextBox Text="{Binding Employee.Patronymic}"/>
+            </StackPanel>
+            <StackPanel>
+                <TextBlock Padding="0 2"
+                           Text="Дата рождения*"/>
+                <DatePicker IsTodayHighlighted="True"
+                            DisplayDateEnd="{x:Static sys:DateTime.Now}"
+                            SelectedDate="{Binding Employee.BirthDate}"/>
+            </StackPanel>
+            <StackPanel>
+                <TextBlock Padding="0 2"
+                           Text="Номер телефона*"/>
+                <TextBox Text="{Binding Employee.PhoneNumber}"/>
+            </StackPanel>
+            <StackPanel>
+                <TextBlock Padding="0 2"
+                           Text="Email*"/>
+                <TextBox Text="{Binding Employee.Email}"/>
+            </StackPanel>
+            <StackPanel>
+                <TextBlock Padding="0 2"
+                           Text="Логин*"/>
+                <TextBox Text="{Binding Employee.Login}"/>
+            </StackPanel>
+            <StackPanel>
+                <TextBlock Padding="0 2"
+                           Text="Пароль*"/>
+                <DockPanel>
+                    <Button DockPanel.Dock="Right"
+                            FontSize="17"
+                            Content="Создать"
+                            Padding="5 0"/>
+                    <TextBox Text="{Binding Employee.Password}"/>
+                </DockPanel>
+            </StackPanel>
+        </UniformGrid>
+        
+    </DockPanel>
+</Window>
