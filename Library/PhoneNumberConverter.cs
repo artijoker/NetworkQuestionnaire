@@ -11,7 +11,7 @@ namespace Library {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture) {
             if (value is null)
                 return null;
-            if (!(value is string condition))
+            if (value is not string condition)
                 throw new ArgumentException($"Исходное значение должно иметь тип {nameof(condition)}");
             if (targetType != typeof(string))
                 throw new InvalidCastException();
