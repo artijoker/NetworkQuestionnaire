@@ -179,6 +179,26 @@
                            Text="{Binding Text}"/>
             </Grid>
         </Border>
+        <Border HorizontalAlignment="Center" 
+                VerticalAlignment="Center" 
+                BorderBrush="Black" 
+                BorderThickness="0.5"
+                Visibility="{Binding VisibilityOk}">
+            <Grid Background="LightCyan" 
+                  Height="150" 
+                  Width="400">
+                <DockPanel Grid.Column="1">
+                    <Button DockPanel.Dock="Bottom"
+                            Content="Ok"/>
+                    <TextBlock FontSize="20"
+                           TextWrapping="WrapWithOverflow"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Text="{Binding Text}"/>
+                </DockPanel>
+                
+            </Grid>
+        </Border>
     </Grid>
     
 </Window>

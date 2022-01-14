@@ -20,6 +20,16 @@ namespace AdminClient {
             await server.GetStream().WriteAsync(buffer, 0, buffer.Length);
         }
 
+        public static async Task SendSurveyListMessage(TcpClient server) {
+            MemoryStream stream = new MemoryStream();
+            BinaryWriter writer = new BinaryWriter(stream);
+
+            writer.Write(Message.AllSurveyAndQuestionTypes);
+            byte[] buffer = stream.ToArray();
+
+            await server.GetStream().WriteAsync(buffer, 0, buffer.Length);
+        }
+
         public static async Task SendAddNewEmployeeMessage(TcpClient server, Employee employee) {
             MemoryStream stream = new MemoryStream();
             BinaryWriter writer = new BinaryWriter(stream);

@@ -52,6 +52,25 @@ namespace Server {
             await client.GetStream().WriteAsync(buffer, 0, buffer.Length);
         }
 
+        public static async Task SendAllSurveyAndQuestionTypeMessage(TcpClient client, Survey[] surveys, QuestionType[] questionTypes) {
+            MemoryStream stream = new MemoryStream();
+            BinaryWriter writer = new BinaryWriter(stream);
+
+
+            writer.Write(Message.AllSurveyAndQuestionTypes);
+
+            byte[] buffer = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(surveys.Select(survey => survey.ToDTO()).ToArray()));
+            writer.Write(buffer.Length);
+            writer.Write(buffer);
+            buffer = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(questionTypes.Select(questionType => questionType.ToDTO()).ToArray()));
+            writer.Write(buffer.Length);
+            writer.Write(buffer);
+            buffer = stream.ToArray();
+
+            await client.GetStream().WriteAsync(buffer, 0, buffer.Length);
+        }
+
+
         //public static async Task SendSelectedSurveyMessage(TcpClient server, Survey survey) {
         //    MemoryStream stream = new MemoryStream();
         //    BinaryWriter writer = new BinaryWriter(stream);

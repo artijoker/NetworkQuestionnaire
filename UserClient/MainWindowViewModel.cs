@@ -18,6 +18,7 @@ namespace UserClient {
         private bool _isEnabledInterface;
         private bool _isHide;
         private Visibility _visibilityProcess;
+        private Visibility _visibilityOk;
         private Survey _selectedSurvay;
         private string _text;
 
@@ -50,6 +51,13 @@ namespace UserClient {
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(VisibilityProcess)));
             }
         }
+        public Visibility VisibilityOk {
+            get => _visibilityOk;
+            set {
+                _visibilityOk = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(VisibilityOk)));
+            }
+        }
 
         public Survey SelectedSurvay {
             get => _selectedSurvay;
@@ -75,6 +83,7 @@ namespace UserClient {
             Employee = employee;
             IsEnabledInterface = true;
             VisibilityProcess = Visibility.Hidden;
+            VisibilityOk = Visibility.Hidden;
             LoadingSurveyListCommand = new(LoadingSurveyList);
             TakeSurveyCommand = new(TakeSurvey);
             LoadingSurveyList();
@@ -90,7 +99,7 @@ namespace UserClient {
                         buffer = await _server.ReadFromStream(4);
                         buffer = await _server.ReadFromStream(BitConverter.ToInt32(buffer, 0));
 
-                        var surveys = JsonSerializer.Deserialize<SurveyDTO[]>(Encoding.UTF8.GetString(buffer))
+                        IEnumerable<Survey> surveys = JsonSerializer.Deserialize<SurveyDTO[]>(Encoding.UTF8.GetString(buffer))
                             .Select(surveyDTO => Survey.FromDTO(surveyDTO));
 
                         Surveys.Clear();
@@ -99,43 +108,17 @@ namespace UserClient {
                         IsEnabledInterface = true;
                         VisibilityProcess = Visibility.Hidden;
                     }
-                    //else if (message == Message.SelectedSurvey) {
-                    //    buffer = await _server.ReadFromStream(4);
-                    //    buffer = await _server.ReadFromStream(BitConverter.ToInt32(buffer, 0));
-
-                    //    Survey survey = Survey.FromDTO(JsonSerializer.Deserialize<SurveyDTO>(Encoding.UTF8.GetString(buffer)));
-
-                    //    IsEnabledInterface = true;
-                    //    VisibilityProcess = Visibility.Hidden;
-                    //    IsHide = true;
-
-                    //    SurveyWindow dialog = new SurveyWindow(survey);
-                    //    if (dialog.ShowDialog() == true) {
-                    //        EmployeeSurveyAnswerDTO employeeSurveyAnswer = dialog.ViewModel.EmployeeSurveyAnswer;
-                    //        employeeSurveyAnswer.Employee = Employee.ToDTO();
-                    //        employeeSurveyAnswer.Survey = SelectedSurvay.ToDTO();
-
-                    //        string jsonString = JsonSerializer.Serialize(employeeSurveyAnswer);
-                    //        File.WriteAllText("Answers.json", jsonString);
-
-                    //        IsHide = false;
-                    //        IsEnabledInterface = false;
-                    //        VisibilityProcess = Visibility.Visible;
-                    //        Text = "Идет процесс сохранения данных. Пожалуйста подождите.";
-
-                    //        await SendMessageServer.SendEmployeeAnswerMessage(_server, employeeSurveyAnswer);
-                    //    }
-                    //    IsHide = false;
-                        
-                        
-                    //}
+ 
                     else if (message == Message.DataSaveSuccess) {
                         buffer = await _server.ReadFromStream(4);
                         buffer = await _server.ReadFromStream(BitConverter.ToInt32(buffer, 0));
                         Surveys.Remove(SelectedSurvay);
-                        MessageBox.Show(Encoding.UTF8.GetString(buffer));
-                        IsEnabledInterface = true;
                         VisibilityProcess = Visibility.Hidden;
+                        VisibilityOk = Visibility.Visible;
+                        Text = Encoding.UTF8.GetString(buffer);
+                        //MessageBox.Show(Encoding.UTF8.GetString(buffer));
+                        //IsEnabledInterface = true;
+                        //VisibilityProcess = Visibility.Hidden;
                     }
 
                 }
@@ -161,12 +144,14 @@ namespace UserClient {
                 return;
             
             SurveyWindow dialog = new(SelectedSurvay);
+            // Survey survey = new() { Id = SelectedSurvay.Id, Name = SelectedSurvay.Name };
+            //employeeSurveyAnswer.Survey = survey.ToDTO();
             if (dialog.ShowDialog() == true) {
-                EmployeeSurveyAnswerDTO employeeSurveyAnswer = dialog.ViewModel.EmployeeSurveyAnswer;
-                employeeSurveyAnswer.Employee = Employee.ToDTO();
-                employeeSurveyAnswer.Survey = SelectedSurvay.ToDTO();
-
-                string jsonString = JsonSerializer.Serialize(employeeSurveyAnswer);
+                EmployeeSurveyAnswer employeeSurveyAnswer = dialog.ViewModel.EmployeeSurveyAnswer;
+                employeeSurveyAnswer.EmployeeId = Employee.Id;
+                employeeSurveyAnswer.SurveyId = SelectedSurvay.Id;
+                JsonSerializerOptions options = new() { IncludeFields = true };
+                string jsonString = JsonSerializer.Serialize(employeeSurveyAnswer, options);
                 File.WriteAllText("Answers.json", jsonString);
 
                 IsHide = false;

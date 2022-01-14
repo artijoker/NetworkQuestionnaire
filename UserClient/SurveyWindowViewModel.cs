@@ -15,7 +15,7 @@ namespace UserClient {
     public class SurveyWindowViewModel : INotifyPropertyChanged {
 
         private bool _isReady;
-        public EmployeeSurveyAnswerDTO EmployeeSurveyAnswer { get; }
+        public EmployeeSurveyAnswer EmployeeSurveyAnswer { get; }
 
         public string SurveyName { get; }
         public ObservableCollection<QuestionViewModel.QuestionViewModel> QuestionViewModels { get; }
@@ -34,11 +34,8 @@ namespace UserClient {
 
         public SurveyWindowViewModel(Survey survey) {
 
-            //string jsonString = JsonSerializer.Serialize(survey.ToDTO());
-            //File.WriteAllText("Survey.json", jsonString);
-
             SurveyName = survey.Name;
-            EmployeeSurveyAnswer = new EmployeeSurveyAnswerDTO();
+            EmployeeSurveyAnswer = new EmployeeSurveyAnswer();
             ReadyCommand = new(Ready);
             QuestionViewModels = new ObservableCollection<QuestionViewModel.QuestionViewModel>(
                survey.Questions.Select(question => question.GetViewModel()));
@@ -52,11 +49,6 @@ namespace UserClient {
                         MessageBox.Show("Вы ответили не на все обязательные вопросы!");
                         return;
                     }
-
-            //if (QuestionViewModels.Where(q => q.IsRequired).All(q => q.IsThereAnswer())) {
-            //    MessageBox.Show("Вы ответили не на все вопросы!");
-            //    return;
-            //}
 
             foreach (var questionViewModel in QuestionViewModels)
                 questionViewModel.SaveAnswerEmployee(EmployeeSurveyAnswer);

@@ -110,74 +110,86 @@ namespace Server {
                         }
 
                     }
-                    else if(message == Message.SurveyList) {
+                    else if (message == Message.SurveyList) {
                         buffer = await client.ReadFromStream(4);
                         int employeeId = BitConverter.ToInt32(buffer, 0);
                         Survey[] surveys;
                         using (SurveysContext context = new()) {
-                            context.QuestionTypes.Load();
-                            surveys = context.Surveys.Where(survey => !survey.Employees.Any(employee => employee.Id == employeeId)).ToArray();
-                            foreach (var survey in surveys) {
-                                context.Entry(survey).Collection("Questions").Load();
-
-                                foreach (var question in survey.Questions) {
+                            surveys = context.Surveys.Where(survey => !survey.Employees.Any(employee => employee.Id == employeeId))
+                                .Include("Questions")
+                                .ToArray();
+                            surveys.ForEach(survey => survey.Questions.ForEach(
+                                question => {
+                                    context.Entry(question).Reference("Type").Load();
                                     context.Entry(question).Collection("FreeAnswers").Load();
                                     context.Entry(question).Collection("MultipleAnswers").Load();
                                     context.Entry(question).Collection("SingleAnswers").Load();
-                                }
-                            }
+                                })
+                            );
                         }
                         await SendMessageClient.SendSurveyListMessage(client, surveys);
                     }
-                    //else if (message == Message.SelectedSurvey) {
-                    //    buffer = await client.ReadFromStream(4);
-                    //    int surveyId = BitConverter.ToInt32(buffer, 0);
+                    else if (message == Message.AllSurveyAndQuestionTypes) {
+                        Survey[] surveys;
+                        QuestionType[] questionTypes;
+                        using (SurveysContext context = new()) {
+                            context.QuestionTypes.Load();
+                            context.Surveys.Load();
+                            context.Questions.Load();
+                            context.Questions.Include("FreeAnswers")
+                                .Include("MultipleAnswers")
+                                .Include("SingleAnswers");
+                            surveys = context.Surveys.ToArray();
+                            questionTypes = context.QuestionTypes.ToArray();
+                        }
+                        await SendMessageClient.SendAllSurveyAndQuestionTypeMessage(client, surveys, questionTypes);
+                    }
 
-
-                    //    Survey survey;
-                    //    using (SurveysContext context = new()) {
-                    //        context.QuestionTypes.Load();
-                    //        survey = context.Surveys.Where(s => s.Id == surveyId).Include("Questions").First();
-
-                    //        foreach (var question in survey.Questions) {
-                    //            context.Entry(question).Collection("FreeAnswers").Load();
-                    //            context.Entry(question).Collection("MultipleAnswers").Load();
-                    //            context.Entry(question).Collection("SingleAnswers").Load();
-                    //        }
-                    //    }
-                    //    await SendMessageClient.SendSelectedSurveyMessage(client, survey);
-                    //}
                     else if (message == Message.EmployeeAnswers) {
                         buffer = await client.ReadFromStream(4);
                         buffer = await client.ReadFromStream(BitConverter.ToInt32(buffer, 0));
 
-                        EmployeeSurveyAnswerDTO employeeAnswer = JsonSerializer.Deserialize<EmployeeSurveyAnswerDTO>(Encoding.UTF8.GetString(buffer));
-                        Employee employee = Employee.FromDTO(employeeAnswer.Employee);
-                        Survey survey = Survey.FromDTO(employeeAnswer.Survey);
+                        EmployeeSurveyAnswer employeeAnswer = JsonSerializer.Deserialize<EmployeeSurveyAnswer>(
+                            Encoding.UTF8.GetString(buffer),
+                            new() { IncludeFields = true }
+                            );
+
+                        Employee employee = new() { Id = employeeAnswer.EmployeeId };
+                        Survey survey = new() { Id = employeeAnswer.SurveyId };
+
                         using (SurveysContext context = new()) {
                             context.Attach(employee);
                             context.Attach(survey);
                             employee.Surveys.Add(survey);
                             survey.Employees.Add(employee);
 
-                            foreach (var answer in employeeAnswer.FreeAnswers) {
-                                FreeAnswer freeAnswer = FreeAnswer.FromDTO(answer.FreeAnswer);
+                            foreach (var tuple in employeeAnswer.FreeAnswersIds) {
+                                int id = tuple.Item1;
+                                string text = tuple.Item2;
+
+                                FreeAnswer freeAnswer = new() { Id = id };
                                 context.Attach(freeAnswer);
 
-                                EmployeeFreeAnswer employeeFreeAnswer = new EmployeeFreeAnswer() { FreeAnswer = freeAnswer, Employee = employee, Text = answer.Text };
+                                EmployeeFreeAnswer employeeFreeAnswer = new EmployeeFreeAnswer() {
+                                    FreeAnswer = freeAnswer,
+                                    Employee = employee,
+                                    Text = text
+                                };
                                 freeAnswer.EmployeeFreeAnswers.Add(employeeFreeAnswer);
                                 employee.EmployeeFreeAnswers.Add(employeeFreeAnswer);
 
                             }
-                            foreach (var answer in employeeAnswer.SingleAnswers) {
-                                SingleAnswer singleAnswer = SingleAnswer.FromDTO(answer);
+                            foreach (var id in employeeAnswer.SingleAnswersIds) {
+                                SingleAnswer singleAnswer = new() { Id = id };
+
                                 context.Attach(singleAnswer);
                                 employee.SingleAnswers.Add(singleAnswer);
                                 singleAnswer.Employees.Add(employee);
 
                             }
-                            foreach (var answer in employeeAnswer.MultipleAnswers) {
-                                MultipleAnswer multipleAnswer = MultipleAnswer.FromDTO(answer);
+                            foreach (var id in employeeAnswer.MultipleAnswersIds) {
+                                MultipleAnswer multipleAnswer = new() { Id = id };
+
                                 context.Attach(multipleAnswer);
                                 employee.MultipleAnswers.Add(multipleAnswer);
                                 multipleAnswer.Employees.Add(employee);
@@ -234,9 +246,30 @@ namespace Server {
                         }
                         await SendMessageClient.SendDataSaveSuccessMessage(client, "Сотрудник удален из базы данных!");
                     }
+                    else if (message == Message.AllAnswerEmployee) {
+                        buffer = await client.ReadFromStream(4);
+                        int employeeId = BitConverter.ToInt32(buffer, 0);
+                        Survey[] surveys;
+                        using (SurveysContext context = new()) {
+                            surveys = context.Surveys.Where(survey => survey.Employees.Any(employee => employee.Id == employeeId))
+                                .Include("Questions")
+                                .ToArray();
+                            surveys.ForEach(survey => survey.Questions.ForEach(
+                                question => {
+                                    context.Entry(question).Reference("Type").Load();
+                                    context.Entry(question).Collection("FreeAnswers").Load();
+                                    context.Entry(question).Collection("MultipleAnswers").Load();
+                                    context.Entry(question).Collection("SingleAnswers").Load();
+                                })
+                            );
+                        }
+                    }
+
+
                 }
             }
-            catch (Exception) {
+            catch (Exception ex) {
+                MessageBox.Show(ex.Message);
                 lock (_clients) {
                     Logs.Add($"Отключился {client.Client.RemoteEndPoint} {DateTime.Now}");
                     if (client.Client.Connected)

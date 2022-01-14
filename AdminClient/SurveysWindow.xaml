@@ -6,31 +6,56 @@
         xmlns:local="clr-namespace:AdminClient"
         mc:Ignorable="d"
         Title="SurveysWindow" Height="450" Width="800">
-
+    <Window.Resources>
+        <Style x:Key="DataGridCellStyle">
+            <Setter Property="DataGridCell.BorderThickness" Value="0"/>
+        </Style>
+    </Window.Resources>
     <Grid>
         <DockPanel>
 
             <UniformGrid DockPanel.Dock="Top"  
                          Columns="3">
-                <Button Content="Добавить"/>
-                <Button Content="Редактировать"/>
-                <Button Content="Удалить"/>
+                <Button Content="Добавить"
+                        Command="{Binding AddSurveyCommand}"/>
+                <Button Content="Редактировать"
+                        Command="{Binding EditSurveyCommand}"/>
+                <Button Content="Удалить"
+                        Command="{Binding RemoveSurveyCommand}"/>
             </UniformGrid>
 
 
 
             <StatusBar DockPanel.Dock="Bottom">
-                <TextBlock Text="Всего опросов:"/>
+                <TextBlock>
+                    <Run Text="Всего опросов:"/>
+                    <Run Text="{Binding Surveys.Count, Mode=OneWay}"/>
+                </TextBlock>
             </StatusBar>
-            <ListBox>
-
-            </ListBox>
+            <DataGrid SelectionMode="Single"
+                      AutoGenerateColumns="False"
+                      ColumnWidth="*"
+                      CanUserAddRows="False"
+                      SelectionUnit="FullRow"
+                      IsReadOnly="True"
+                      RowHeaderWidth="0"
+                      SelectedItem="{Binding SelectedSurvey}"
+                      CellStyle="{StaticResource DataGridCellStyle}"
+                      ItemsSource="{Binding Surveys}">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Название опроса"
+                                        Binding="{Binding Name}"/>
+                    <DataGridTextColumn Header="Количество вопросов"
+                                        Binding="{Binding Questions.Count, Mode=OneWay}"/>
+                </DataGrid.Columns>
+            </DataGrid>
 
         </DockPanel>
         <Border HorizontalAlignment="Center" 
                 VerticalAlignment="Center" 
                 BorderBrush="Black" 
-                BorderThickness="0.5">
+                BorderThickness="0.5"
+                Visibility="{Binding VisibilityProcess}">
             <Grid Background="LightCyan" 
                   Height="130" 
                   Width="511">
@@ -72,6 +97,27 @@
                            HorizontalAlignment="Center"
                            VerticalAlignment="Center"
                            Text="{Binding Text}"/>
+            </Grid>
+        </Border>
+        <Border HorizontalAlignment="Center" 
+                VerticalAlignment="Center" 
+                BorderBrush="Black" 
+                BorderThickness="0.5"
+                Visibility="{Binding VisibilityReady}">
+            <Grid Background="LightCyan" 
+                  Height="150" 
+                  Width="400">
+                <DockPanel Grid.Column="1">
+                    <Button DockPanel.Dock="Bottom"
+                            Content="Ok"
+                            Command="{Binding ReadyCommand}"/>
+                    <TextBlock FontSize="20"
+                           TextWrapping="WrapWithOverflow"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Text="{Binding Text}"/>
+                </DockPanel>
+
             </Grid>
         </Border>
     </Grid>

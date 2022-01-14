@@ -22,9 +22,9 @@ namespace UserClient.QuestionViewModel {
             Answers = new ObservableCollection<RadioButtonViewModel>(
                 question.SingleAnswers.Select(answer => new RadioButtonViewModel(answer, question.Id)));
         }
-        public override void SaveAnswerEmployee(EmployeeSurveyAnswerDTO userAnswer) {
+        public override void SaveAnswerEmployee(EmployeeSurveyAnswer userAnswer) {
             if (IsThereAnswer()) 
-                userAnswer.SingleAnswers.Add(Answers.Single(answer => answer.IsChecked).Answer.ToDTO());
+                userAnswer.SingleAnswersIds.Add(Answers.Single(answer => answer.IsChecked).Answer.Id);
         }
 
         public override bool IsThereAnswer() => Answers.Any(answer => answer.IsChecked == true);

@@ -6,6 +6,11 @@
         xmlns:local="clr-namespace:AdminClient"
         mc:Ignorable="d"
         Title="AddEditSurveyWindow" Height="450" Width="800">
+    <Window.Resources>
+        <Style x:Key="DataGridCellStyle">
+            <Setter Property="DataGridCell.BorderThickness" Value="0"/>
+        </Style>
+    </Window.Resources>
     <DockPanel>
         <Grid DockPanel.Dock="Top">
             <Grid.ColumnDefinitions>
@@ -14,14 +19,17 @@
             </Grid.ColumnDefinitions>
             <TextBlock Grid.Column="0" 
                        Text="Название опроса"/>
-            <TextBox Grid.Column="1"/>
+            <TextBox Grid.Column="1"
+                     Text="{Binding TextSurvey}"/>
         </Grid>
         <TextBlock DockPanel.Dock="Top"
                    Text="Список вопросов"/>
         <UniformGrid DockPanel.Dock="Bottom"
                      Columns="2">
-            <Button Content="Сохранить"/>
-            <Button Content="Отмена"/>
+            <Button Content="Сохранить"
+                    Command="{Binding SaveCommand}"/>
+            <Button Content="Отмена"
+                    Command="{Binding CancelCommand}"/>
         </UniformGrid>
         <DockPanel>
             <UniformGrid DockPanel.Dock="Bottom"
@@ -30,9 +38,23 @@
                 <Button Content="Изменить"/>
                 <Button Content="Удалить"/>
             </UniformGrid>
-            <ListBox>
-                
-            </ListBox>
+            <DataGrid SelectionMode="Single"
+                      AutoGenerateColumns="False"
+                      ColumnWidth="*"
+                      CanUserAddRows="False"
+                      SelectionUnit="FullRow"
+                      IsReadOnly="True"
+                      RowHeaderWidth="0"
+                      SelectedItem="{Binding SelectedQuestion}"
+                      CellStyle="{StaticResource DataGridCellStyle}"
+                      ItemsSource="{Binding Questions}">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Вопрос"/>
+                    <DataGridTextColumn Header="Тип вопроса"/>
+                    <DataGridTextColumn Header="Количество ответов"/>
+                    <DataGridTextColumn Header="Обязательный"/>
+                </DataGrid.Columns>
+            </DataGrid>
         </DockPanel>
 
     </DockPanel>

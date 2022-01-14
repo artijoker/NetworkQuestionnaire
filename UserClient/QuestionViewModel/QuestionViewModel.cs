@@ -13,7 +13,7 @@ namespace UserClient.QuestionViewModel {
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public abstract void SaveAnswerEmployee(EmployeeSurveyAnswerDTO employeeAnswer);
+        public abstract void SaveAnswerEmployee(EmployeeSurveyAnswer employeeAnswer);
         public abstract bool IsThereAnswer();
         public abstract bool IsRequired { get; }
         public void OnPropertyChanged(string property) =>

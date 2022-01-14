@@ -88,12 +88,12 @@ namespace AdminClient {
                         buffer = await _server.ReadFromStream(4);
                         buffer = await _server.ReadFromStream(BitConverter.ToInt32(buffer, 0));
 
-                        var surveys = JsonSerializer.Deserialize<EmployeeDTO[]>(Encoding.UTF8.GetString(buffer))
+                        var employees = JsonSerializer.Deserialize<EmployeeDTO[]>(Encoding.UTF8.GetString(buffer))
                             .Select(employeeDTO => Employee.FromDTO(employeeDTO));
 
                         Employees.Clear();
-                        foreach (var survey in surveys)
-                            Employees.Add(survey);
+                        foreach (var employee in employees)
+                            Employees.Add(employee);
                         IsEnabledInterface = true;
                         VisibilityProcess = Visibility.Hidden;
                     }

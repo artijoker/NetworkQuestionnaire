@@ -51,12 +51,13 @@ namespace UserClient {
         //    await server.GetStream().WriteAsync(buffer, 0, buffer.Length);
         //}
 
-        public static async Task SendEmployeeAnswerMessage(TcpClient server, EmployeeSurveyAnswerDTO employeeAnswer) {
+        public static async Task SendEmployeeAnswerMessage(TcpClient server, EmployeeSurveyAnswer employeeAnswer) {
             MemoryStream stream = new MemoryStream();
             BinaryWriter writer = new BinaryWriter(stream);
 
             writer.Write(Message.EmployeeAnswers);
-            byte[] buffer = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(employeeAnswer));
+            string jsonString = JsonSerializer.Serialize(employeeAnswer, new() { IncludeFields = true });
+            byte[] buffer = Encoding.UTF8.GetBytes(jsonString);
             writer.Write(buffer.Length);
             writer.Write(buffer);
             buffer = stream.ToArray();

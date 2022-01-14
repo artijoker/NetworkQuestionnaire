@@ -6,15 +6,19 @@ using System.ComponentModel;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
 
 namespace AdminClient {
     class SurveysWindowViewModel : INotifyPropertyChanged {
         private readonly TcpClient _server;
+        private QuestionType[] _questionTypes;
         private bool _isEnabledInterface;
         private bool _isHide;
         private Visibility _visibilityProcess;
+        private Visibility _visibilityReady;
+
         private Survey _selectedSurvey;
         private string _text;
 
@@ -44,6 +48,13 @@ namespace AdminClient {
             }
         }
 
+        public Visibility VisibilityReady {
+            get => _visibilityReady;
+            set {
+                _visibilityReady = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(VisibilityReady)));
+            }
+        }
         public Survey SelectedSurvey {
             get => _selectedSurvey;
             set {
@@ -62,9 +73,17 @@ namespace AdminClient {
         public DelegateCommand AddSurveyCommand { get; }
         public DelegateCommand EditSurveyCommand { get; }
         public DelegateCommand RemoveSurveyCommand { get; }
+        public DelegateCommand ReadyCommand { get; }
 
         public SurveysWindowViewModel(TcpClient server) {
-
+            _server = server;
+            IsEnabledInterface = true;
+            VisibilityProcess = Visibility.Hidden;
+            VisibilityReady = Visibility.Hidden;
+            ReadyCommand = new(Ready);
+            Text = "Идет процесс создания списка опросов. Пожалуйста подождите.";
+            LoadingSurveyList();
+            ListenToServer();
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -75,6 +94,36 @@ namespace AdminClient {
                     byte[] buffer = await _server.ReadFromStream(1);
                     byte message = buffer[0];
 
+                    if (message == Message.AllSurveyAndQuestionTypes) {
+                        buffer = await _server.ReadFromStream(4);
+                        buffer = await _server.ReadFromStream(BitConverter.ToInt32(buffer, 0));
+
+                        IEnumerable<Survey> surveys = JsonSerializer.Deserialize<SurveyDTO[]>(Encoding.UTF8.GetString(buffer))
+                             .Select(surveyDTO => Survey.FromDTO(surveyDTO));
+
+                        Surveys.Clear();
+                        foreach (var survey in surveys)
+                            Surveys.Add(survey);
+
+                        buffer = await _server.ReadFromStream(4);
+                        buffer = await _server.ReadFromStream(BitConverter.ToInt32(buffer, 0));
+
+                        _questionTypes = JsonSerializer.Deserialize<QuestionTypeDTO[]>(Encoding.UTF8.GetString(buffer))
+                             .Select(questionTypesDTO => QuestionType.FromDTO(questionTypesDTO)).ToArray();
+
+                        VisibilityProcess = Visibility.Hidden;
+                        VisibilityReady = Visibility.Visible;
+                        Text = "Готово";
+                    }
+                    else if (message == Message.DataSaveSuccess) {
+                        buffer = await _server.ReadFromStream(4);
+                        buffer = await _server.ReadFromStream(BitConverter.ToInt32(buffer, 0));
+                        MessageBox.Show(Encoding.UTF8.GetString(buffer));
+                        IsEnabledInterface = true;
+                        VisibilityProcess = Visibility.Hidden;
+                        Text = "Идет процесс обновления списка опросов. Пожалуйста подождите.";
+                        LoadingSurveyList();
+                    }
 
                 }
             }
@@ -90,6 +139,39 @@ namespace AdminClient {
             if (_server.Client.Connected)
                 _server.Client.Shutdown(SocketShutdown.Both);
             _server.Client.Close();
+        }
+
+        private async void LoadingSurveyList() {
+            IsEnabledInterface = false;
+            VisibilityProcess = Visibility.Visible;
+            await SendMessageServer.SendSurveyListMessage(_server);
+        }
+
+        private async void AddSurvey() {
+            AddEditSurveyWindow dialog = new(_questionTypes);
+            if (dialog.ShowDialog() == true) {
+                IsEnabledInterface = false;
+                VisibilityProcess = Visibility.Visible;
+                Survey survey = dialog.ViewModel.Survey;
+                Text = "Идет процесс добавления нового опроса. Пожалуйста подождите.";
+                await SendMessageServer.SendAddNewSurveyMessage(_server, survey);
+            }
+        }
+
+        private async void EditSurvey() {
+            AddEditSurveyWindow dialog = new(_questionTypes, SelectedSurvey);
+            if (dialog.ShowDialog() == true) {
+                IsEnabledInterface = false;
+                VisibilityProcess = Visibility.Visible;
+                Survey survey = dialog.ViewModel.Survey;
+                Text = "Идет процесс изменения выбраного опроса. Пожалуйста подождите.";
+                await SendMessageServer.SendEditSurveyMessage(_server, survey);
+            }
+        }
+
+        private void Ready() {
+            VisibilityReady = Visibility.Hidden;
+            IsEnabledInterface = true;
         }
     }
 }
