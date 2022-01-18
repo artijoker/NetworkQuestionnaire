@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Library;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,8 +18,31 @@ namespace AdminClient {
     /// Логика взаимодействия для AddEditQuestionWindow.xaml
     /// </summary>
     public partial class AddEditQuestionWindow : Window {
-        public AddEditQuestionWindow() {
+        public AddEditQuestionWindowViewModel ViewModel { get; }
+
+        public AddEditQuestionWindow(QuestionType[] questionTypes) {
             InitializeComponent();
+            ViewModel = new(questionTypes);
+            DataContext = ViewModel;
+            HandleEvent();
+        }
+
+        public AddEditQuestionWindow(QuestionType[] questionTypes, Question question) {
+            InitializeComponent();
+            ViewModel = new(questionTypes, question);
+            DataContext = ViewModel;
+            HandleEvent();
+        }
+
+        private void HandleEvent() {
+            ViewModel.PropertyChanged += (sender, e) => {
+                if (e.PropertyName == "IsDialogResult") {
+                    if (ViewModel.IsDialogResult)
+                        DialogResult = true;
+                    else
+                        DialogResult = false;
+                }
+            };
         }
     }
 }

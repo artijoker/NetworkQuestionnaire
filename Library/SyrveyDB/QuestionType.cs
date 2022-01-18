@@ -10,6 +10,10 @@ namespace Library {
         public ICollection<Question> Questions { get; set; } = new HashSet<Question>();
 
         public QuestionTypeDTO ToDTO() => new QuestionTypeDTO() { Id = Id, Type = Type };
-        static public QuestionType FromDTO(QuestionTypeDTO typeDTO) => new QuestionType() { Id = typeDTO.Id, Type = typeDTO.Type };
+        #nullable enable
+        static public QuestionType? FromDTO(QuestionTypeDTO? typeDTO) {
+            if (typeDTO is null) return null;
+            return new QuestionType() { Id = typeDTO.Id, Type = typeDTO.Type };
+        }
     }
 }

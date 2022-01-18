@@ -40,17 +40,6 @@ namespace UserClient {
             await server.GetStream().WriteAsync(buffer, 0, buffer.Length);
         }
 
-        //public static async Task SendSelectedSurveyMessage(TcpClient server, Survey survey) {
-        //    MemoryStream stream = new MemoryStream();
-        //    BinaryWriter writer = new BinaryWriter(stream);
-
-        //    writer.Write(Message.SelectedSurvey);
-        //    writer.Write(survey.Id);
-        //    byte[] buffer = stream.ToArray();
-
-        //    await server.GetStream().WriteAsync(buffer, 0, buffer.Length);
-        //}
-
         public static async Task SendEmployeeAnswerMessage(TcpClient server, EmployeeSurveyAnswer employeeAnswer) {
             MemoryStream stream = new MemoryStream();
             BinaryWriter writer = new BinaryWriter(stream);

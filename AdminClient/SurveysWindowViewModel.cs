@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
@@ -81,6 +82,9 @@ namespace AdminClient {
             VisibilityProcess = Visibility.Hidden;
             VisibilityReady = Visibility.Hidden;
             ReadyCommand = new(Ready);
+            AddSurveyCommand = new(AddSurvey);
+            EditSurveyCommand = new(EditSurvey);
+            RemoveSurveyCommand = new(RemoveSurvey);
             Text = "Идет процесс создания списка опросов. Пожалуйста подождите.";
             LoadingSurveyList();
             ListenToServer();
@@ -98,6 +102,8 @@ namespace AdminClient {
                         buffer = await _server.ReadFromStream(4);
                         buffer = await _server.ReadFromStream(BitConverter.ToInt32(buffer, 0));
 
+                        //string json = Encoding.UTF8.GetString(buffer);
+                        //File.WriteAllText("NewTest.json", json);
                         IEnumerable<Survey> surveys = JsonSerializer.Deserialize<SurveyDTO[]>(Encoding.UTF8.GetString(buffer))
                              .Select(surveyDTO => Survey.FromDTO(surveyDTO));
 
@@ -153,12 +159,18 @@ namespace AdminClient {
                 IsEnabledInterface = false;
                 VisibilityProcess = Visibility.Visible;
                 Survey survey = dialog.ViewModel.Survey;
+                //Survey survey = Test();
+                //string jsonString = JsonSerializer.Serialize(survey);
+                //File.WriteAllText("SurveysTest.json", jsonString);
+                //string json = File.ReadAllText("SurveysTest.json");
                 Text = "Идет процесс добавления нового опроса. Пожалуйста подождите.";
                 await SendMessageServer.SendAddNewSurveyMessage(_server, survey);
             }
         }
 
         private async void EditSurvey() {
+            if (SelectedSurvey is null)
+                return;
             AddEditSurveyWindow dialog = new(_questionTypes, SelectedSurvey);
             if (dialog.ShowDialog() == true) {
                 IsEnabledInterface = false;
@@ -169,9 +181,73 @@ namespace AdminClient {
             }
         }
 
+        private async void RemoveSurvey() {
+            if (SelectedSurvey is null)
+                return;
+            IsEnabledInterface = false;
+            VisibilityProcess = Visibility.Visible;
+            Text = "Идет процесс удаления выбраного опроса. Пожалуйста подождите.";
+            await SendMessageServer.SendRemoveSurveyMessage(_server, SelectedSurvey);
+        }
+
         private void Ready() {
             VisibilityReady = Visibility.Hidden;
             IsEnabledInterface = true;
         }
+
+        private Survey Test() {
+            Survey survey = new Survey() {
+                Name = "TEST"
+            };
+            survey.Questions.Add(
+                new Question() {
+                    QuestionTypeId = 1,
+                    IsRequired = true,
+                    Text = "WHAT1?",
+                    SingleAnswers = new SingleAnswer[] {
+                        new SingleAnswer() {
+                            Text = "01"
+                        },
+                        new SingleAnswer() {
+                            Text = "02"
+                        }
+                    }
+                }
+            );
+            survey.Questions.Add(
+                new Question() {
+                    QuestionTypeId = 1,
+                    IsRequired = true,
+                    Text = "WHAT2?",
+                    SingleAnswers = new SingleAnswer[] {
+                        new SingleAnswer() {
+                            Text = "03"
+                        },
+                        new SingleAnswer() {
+                            Text = "04"
+                        }
+                    }
+
+                }
+            );
+            survey.Questions.Add(
+                new Question() {
+                    QuestionTypeId = 1,
+                    IsRequired = true,
+                    Text = "WHAT3?",
+                    SingleAnswers = new SingleAnswer[] {
+                        new SingleAnswer() {
+                            Text = "05"
+                        },
+                        new SingleAnswer() {
+                            Text = "06"
+                        }
+                    }
+                }
+            );
+            return survey;
+
+        }
     }
+
 }

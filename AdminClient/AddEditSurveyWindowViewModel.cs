@@ -10,9 +10,10 @@ using System.Threading.Tasks;
 namespace AdminClient {
     public class AddEditSurveyWindowViewModel : INotifyPropertyChanged {
         private bool _isDialogResult;
+        private int _surveyId;
         private string _textSurvey;
         private Question _selectedQuestion;
-        private QuestionType[] _questionTypes;
+        private readonly QuestionType[] _questionTypes;
 
         public event PropertyChangedEventHandler PropertyChanged;
         public Survey Survey { get; }
@@ -50,22 +51,60 @@ namespace AdminClient {
 
         public AddEditSurveyWindowViewModel(QuestionType[] questionTypes) {
             Survey = new Survey();
+            _surveyId = 0;
             _questionTypes = questionTypes;
             Questions = new();
             SaveCommand = new(Save);
             CancelCommand = new(Cancel);
+            AddQuestionCommand = new(AddQuestion);
+            EditQuestionCommand = new(EditQuestion);
+            RemoveQuestionCommand = new(RemoveQuestion);
         }
 
         public AddEditSurveyWindowViewModel(QuestionType[] questionTypes, Survey survey) {
+            Survey = new Survey();
+            _surveyId = survey.Id;
             _questionTypes = questionTypes;
-            Survey = survey;
-            TextSurvey = Survey.Name;
-            Questions = new(Survey.Questions);
+            TextSurvey = survey.Name;
+            Questions = new(survey.Questions);
             SaveCommand = new(Save);
             CancelCommand = new(Cancel);
+            AddQuestionCommand = new(AddQuestion);
+            EditQuestionCommand = new(EditQuestion);
+            RemoveQuestionCommand = new(RemoveQuestion);
         }
 
-        private void Save() => IsDialogResult = true;
+        private void AddQuestion() {
+            AddEditQuestionWindow dialog = new(_questionTypes);
+            if (dialog.ShowDialog() == true)
+                Questions.Add(dialog.ViewModel.Question);
+            
+        }
+
+        private void EditQuestion() {
+            AddEditQuestionWindow dialog = new(_questionTypes, SelectedQuestion);
+            if (dialog.ShowDialog() == true)
+                Questions[Questions.IndexOf(SelectedQuestion)] = dialog.ViewModel.Question;
+            SelectedQuestion = null;
+        }
+
+        private void RemoveQuestion() {
+            if (SelectedQuestion is null)
+                return;
+            Questions.Remove(SelectedQuestion);
+        }
+
+        private void Save() {
+            SaveSurvey();
+            IsDialogResult = true;
+        }
         private void Cancel() => IsDialogResult = false;
+
+
+        private void SaveSurvey() {
+            Survey.Id = _surveyId;
+            Survey.Name = TextSurvey;
+            Survey.Questions = Questions.ToList();
+        }
     }
 }

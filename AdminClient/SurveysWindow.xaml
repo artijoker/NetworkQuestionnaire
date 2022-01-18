@@ -5,10 +5,29 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AdminClient"
         mc:Ignorable="d"
-        Title="SurveysWindow" Height="450" Width="800">
+        Title="SurveysWindow" Height="450" Width="800"
+        FontSize="12">
     <Window.Resources>
         <Style x:Key="DataGridCellStyle">
             <Setter Property="DataGridCell.BorderThickness" Value="0"/>
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="LightBlue"/>
+            <Setter Property="Button.Padding" Value="5"/>
+            <Setter Property="Button.Margin" Value="5 7"/>
+            <Setter Property="TextBlock.FontSize" Value="18"/>
+            <Style.Resources>
+                <Style TargetType="Border">
+                    <Setter Property="CornerRadius" Value="5"/>
+                    <Style.Triggers>
+                        <Trigger  Property="IsMouseOver" Value="True">
+                            <Setter  Property="CornerRadius" Value="5"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+
+            </Style.Resources>
+
         </Style>
     </Window.Resources>
     <Grid>

@@ -130,11 +130,13 @@ namespace AdminClient {
         }
 
         private async void AddEmployee() {
+
             AddEditEmployeeWindow dialog = new();
             if (dialog.ShowDialog() == true) {
                 IsEnabledInterface = false;
                 VisibilityProcess = Visibility.Visible;
                 Employee employee = dialog.ViewModel.Employee;
+                EmployeeDataVerification(employee);
                 Text = "Идет процесс добавления нового сотрудника. Пожалуйста подождите.";
                 await SendMessageServer.SendAddNewEmployeeMessage(_server, employee);
             }
@@ -143,12 +145,12 @@ namespace AdminClient {
         private async void EditEmployee() {
             if (SelectedEmployee is null) 
                 return;
-            
             AddEditEmployeeWindow dialog = new(SelectedEmployee);
             if (dialog.ShowDialog() == true) {
+                Employee employee = dialog.ViewModel.Employee;
+                EmployeeDataVerification(employee);
                 IsEnabledInterface = false;
                 VisibilityProcess = Visibility.Visible;
-                Employee employee = dialog.ViewModel.Employee;
                 Text = "Идет процесс изменения данных сотрудника. Пожалуйста подождите.";
                 await SendMessageServer.SendEditEmployeeMessage(_server, employee);
             }
@@ -163,5 +165,25 @@ namespace AdminClient {
             Text = "Идет процесс удаления сотрудника. Пожалуйста подождите.";
             await SendMessageServer.SendRemoveEmployeeMessage(_server, SelectedEmployee);
         }
+
+        private void EmployeeDataVerification(Employee employee) {
+            Employee currentEmployee = employee;
+            while (true) {
+                if (Employees.Any(e => e.PhoneNumber == currentEmployee.PhoneNumber && e.Id != currentEmployee.Id))
+                    MessageBox.Show("Такой телефонный номер уже есть в базе!");
+                else if (Employees.Any(e => e.Email == currentEmployee.Email && e.Id != currentEmployee.Id))
+                    MessageBox.Show("Такой email уже есть в базе!");
+                else if (Employees.Any(e => e.Login == currentEmployee.Login && e.Id != currentEmployee.Id))
+                    MessageBox.Show("Такой логин уже есть в базе!");
+                else
+                    return;
+                AddEditEmployeeWindow dialog = new(currentEmployee);
+                if (dialog.ShowDialog() == true) {
+                    currentEmployee = dialog.ViewModel.Employee;
+                }
+
+            }
+        }
+
     }
 }

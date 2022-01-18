@@ -28,7 +28,6 @@ namespace Library {
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder) {
-
             modelBuilder.Entity<MultipleAnswer>(answer => {
                 answer.ToTable("MultipleAnswers");
 
@@ -620,6 +619,9 @@ namespace Library {
                     },
                 });
         }
+
+
+
     }
 
 

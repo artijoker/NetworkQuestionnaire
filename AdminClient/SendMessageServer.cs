@@ -91,7 +91,8 @@ namespace AdminClient {
             BinaryWriter writer = new BinaryWriter(stream);
 
             writer.Write(Message.EditSurvey);
-
+            //string json = File.ReadAllText("Test01.json");
+            //byte[] buffer = Encoding.UTF8.GetBytes(json);
             byte[] buffer = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(survey.ToDTO()));
             writer.Write(buffer.Length);
             writer.Write(buffer);
@@ -105,11 +106,8 @@ namespace AdminClient {
             BinaryWriter writer = new BinaryWriter(stream);
 
             writer.Write(Message.RemoveSurvey);
-
-            byte[] buffer = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(survey.ToDTO()));
-            writer.Write(buffer.Length);
-            writer.Write(buffer);
-            buffer = stream.ToArray();
+            writer.Write(survey.Id);
+            byte[] buffer = stream.ToArray();
 
             await server.GetStream().WriteAsync(buffer, 0, buffer.Length);
         }

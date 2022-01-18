@@ -10,6 +10,9 @@
         <Style x:Key="DataGridCellStyle">
             <Setter Property="DataGridCell.BorderThickness" Value="0"/>
         </Style>
+        <local:BoolToStringConverter x:Key="BoolToString"/>
+        <local:QuestionTypeToStringConverter x:Key="QuestionTypeToString"/>
+        <local:QuestionToAmountAnswerConverter x:Key="QuestionToAmountAnswer"/>
     </Window.Resources>
     <DockPanel>
         <Grid DockPanel.Dock="Top">
@@ -22,8 +25,7 @@
             <TextBox Grid.Column="1"
                      Text="{Binding TextSurvey}"/>
         </Grid>
-        <TextBlock DockPanel.Dock="Top"
-                   Text="Список вопросов"/>
+        
         <UniformGrid DockPanel.Dock="Bottom"
                      Columns="2">
             <Button Content="Сохранить"
@@ -31,12 +33,17 @@
             <Button Content="Отмена"
                     Command="{Binding CancelCommand}"/>
         </UniformGrid>
-        <DockPanel>
+        <DockPanel Margin="15">
+            <TextBlock DockPanel.Dock="Top"
+                   Text="Список вопросов:"/>
             <UniformGrid DockPanel.Dock="Bottom"
                          Columns="3">
-                <Button Content="Добавить"/>
-                <Button Content="Изменить"/>
-                <Button Content="Удалить"/>
+                <Button Content="Добавить"
+                        Command="{Binding AddQuestionCommand}"/>
+                <Button Content="Изменить"
+                        Command="{Binding EditQuestionCommand}"/>
+                <Button Content="Удалить"
+                        Command="{Binding RemoveQuestionCommand}"/>
             </UniformGrid>
             <DataGrid SelectionMode="Single"
                       AutoGenerateColumns="False"
@@ -49,10 +56,14 @@
                       CellStyle="{StaticResource DataGridCellStyle}"
                       ItemsSource="{Binding Questions}">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Вопрос"/>
-                    <DataGridTextColumn Header="Тип вопроса"/>
-                    <DataGridTextColumn Header="Количество ответов"/>
-                    <DataGridTextColumn Header="Обязательный"/>
+                    <DataGridTextColumn Header="Вопрос"
+                                        Binding="{Binding Text}"/>
+                    <DataGridTextColumn Header="Тип вопроса"
+                                        Binding="{Binding Type, 
+                                        Converter={StaticResource QuestionTypeToString}}"/>
+                    <DataGridTextColumn Header="Обязательный"
+                                        Binding="{Binding IsRequired, 
+                                        Converter={StaticResource BoolToString} }"/>
                 </DataGrid.Columns>
             </DataGrid>
         </DockPanel>

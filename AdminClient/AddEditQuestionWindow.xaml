@@ -6,61 +6,120 @@
         xmlns:local="clr-namespace:AdminClient"
         mc:Ignorable="d"
         Title="AddEditQuestionWindow" Height="450" Width="600">
+    <Window.Resources>
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="LightBlue"/>
+            <Setter Property="Button.Padding" Value="5"/>
+            <Setter Property="Button.Margin" Value="5 7"/>
+            <Setter Property="TextBlock.FontSize" Value="18"/>
+            <Style.Resources>
+                <Style TargetType="Border">
+                    <Setter Property="CornerRadius" Value="5"/>
+                    <Style.Triggers>
+                        <Trigger  Property="IsMouseOver" Value="True">
+                            <Setter  Property="CornerRadius" Value="5"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+
+            </Style.Resources>
+
+        </Style>
+    </Window.Resources>
     <Grid>
-        
 
 
-        <DockPanel>
-            <Grid DockPanel.Dock="Top">
+
+        <DockPanel IsEnabled="{Binding IsEnabledInterface}">
+            <Grid DockPanel.Dock="Top"
+                  Margin="5">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="auto"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" 
+                <TextBlock Grid.Column="0"
+                           Margin="0 0 5 0"
                        Text="Текст вопроса:"/>
-                <TextBox Grid.Column="1"/>
+                <TextBox Grid.Column="1"
+                         Text="{Binding TextQuestion}"/>
             </Grid>
             <CheckBox DockPanel.Dock="Top"
-                  Content="Обязательный"/>
+                      Margin="5"
+                  Content="Обязательный вопрос"
+                      IsChecked="{Binding IsRequired}"/>
             <TextBlock DockPanel.Dock="Top" 
+                       Margin="5"
                    Text="Тип вопроса"/>
-            <ComboBox DockPanel.Dock="Top"/>
+            <ComboBox DockPanel.Dock="Top"
+                      Margin="5 0 0 0"
+                      Padding="150 5"
+                      HorizontalAlignment="Left"
+                      DisplayMemberPath="Type"
+                      SelectedValuePath="Type"
+                      SelectedValue="{Binding SelectedQuestionType.Type}"
+                      ItemsSource="{Binding QuestionTypes}"
+                      SelectedItem="{Binding SelectedQuestionType}"/>
 
 
-            <TextBlock DockPanel.Dock="Top"
-                   Text="Список ответов"/>
-            <UniformGrid DockPanel.Dock="Bottom"
-                     Columns="2">
-                <Button Content="Сохранить"/>
-                <Button Content="Отмена"/>
-            </UniformGrid>
-            <DockPanel>
-                <UniformGrid DockPanel.Dock="Bottom"
-                         Columns="3">
-                    <Button Content="Добавить"/>
-                    <Button Content="Изменить"/>
-                    <Button Content="Удалить"/>
+            <Border DockPanel.Dock="Bottom" 
+                    BorderBrush="Black" 
+                    BorderThickness="0 0.5 0 0">
+                <UniformGrid Columns="2">
+                    <Button Content="Сохранить"
+                        Command="{Binding SaveCommand}"/>
+                    <Button Content="Отмена"
+                        Command="{Binding CancelCommand}"/>
                 </UniformGrid>
-                <ListBox>
-
-                </ListBox>
-            </DockPanel>
+            </Border>
+            
+            <Border BorderBrush="Black" 
+                    BorderThickness="0.5"
+                    Margin="13"
+                    Visibility="{Binding VisibilityAnswersList}">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top"
+                               Padding="3"
+                               Text="Список ответов:"/>
+                    <UniformGrid DockPanel.Dock="Bottom"
+                         Columns="3">
+                        <Button Content="Добавить"
+                                Command="{Binding AddAnswerCommand}"/>
+                        <Button Content="Изменить"
+                                Command="{Binding EditAnswerCommand}"/>
+                        <Button Content="Удалить"
+                                Command="{Binding RemoveAnswerCommand}"/>
+                    </UniformGrid>
+                    <ListBox ItemsSource="{Binding Answers}"
+                         SelectedItem="{Binding SelectedAnswer}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+            
 
         </DockPanel>
 
         <Border VerticalAlignment="Center"
                 Margin="20 0"
                 BorderBrush="Black" 
-                BorderThickness="0.5">
+                BorderThickness="0.5"
+                Visibility="{Binding VisibilityInputField}">
             <DockPanel>
                 <UniformGrid DockPanel.Dock="Bottom" 
                              Columns="2">
                     <Button Content="ОК"
-                            Padding="5"/>
+                            Padding="2"
+                            Command="{Binding OKInputFieldCommand}"/>
                     <Button Content="Отмена"
-                            Padding="5"/>
+                            Padding="2"
+                            Command="{Binding CancelInputFieldCommand}"/>
                 </UniformGrid>
-                <Grid >
+                <Grid Visibility="{Binding VisibilityInputField}"
+                      Margin="0 5">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="auto"/>
                         <ColumnDefinition Width="*"/>
@@ -69,7 +128,8 @@
                                Text="Текст ответа:"
                                Padding="5"/>
                     <TextBox Grid.Column="1"
-                             Margin="5 0"/>
+                             Margin="5 0"
+                             Text="{Binding TextAnswer}"/>
                 </Grid>
             </DockPanel>
         </Border>

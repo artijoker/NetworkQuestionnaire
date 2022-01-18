@@ -136,9 +136,9 @@ namespace Server {
                             context.QuestionTypes.Load();
                             context.Surveys.Load();
                             context.Questions.Load();
-                            context.Questions.Include("FreeAnswers")
-                                .Include("MultipleAnswers")
-                                .Include("SingleAnswers");
+                            context.FreeAnswers.Load();
+                            context.MultipleAnswers.Load();
+                            context.SingleAnswers.Load();
                             surveys = context.Surveys.ToArray();
                             questionTypes = context.QuestionTypes.ToArray();
                         }
@@ -247,24 +247,66 @@ namespace Server {
                         await SendMessageClient.SendDataSaveSuccessMessage(client, "Сотрудник удален из базы данных!");
                     }
                     else if (message == Message.AllAnswerEmployee) {
-                        buffer = await client.ReadFromStream(4);
-                        int employeeId = BitConverter.ToInt32(buffer, 0);
-                        Survey[] surveys;
-                        using (SurveysContext context = new()) {
-                            surveys = context.Surveys.Where(survey => survey.Employees.Any(employee => employee.Id == employeeId))
-                                .Include("Questions")
-                                .ToArray();
-                            surveys.ForEach(survey => survey.Questions.ForEach(
-                                question => {
-                                    context.Entry(question).Reference("Type").Load();
-                                    context.Entry(question).Collection("FreeAnswers").Load();
-                                    context.Entry(question).Collection("MultipleAnswers").Load();
-                                    context.Entry(question).Collection("SingleAnswers").Load();
-                                })
-                            );
-                        }
-                    }
+                        //buffer = await client.ReadFromStream(4);
+                        //int employeeId = BitConverter.ToInt32(buffer, 0);
+                        //Survey[] surveys;
+                        //using (SurveysContext context = new()) {
+                        //    Employee employee = context.Employees.Where(employee => employee.Id == employeeId).Single();
+                        //    context.EmployeesFreeAnswers.Where(e => e.EmployeeId == employeeId).Reference("Type")
+                        //    surveys = context.Surveys.Where(survey => survey.Employees.Any(employee => employee.Id == employeeId))
+                        //        .Include("Questions")
+                        //        .ToArray();
+                        //    surveys.ForEach(survey => survey.Questions.ForEach(
+                        //        question => {
+                        //            context.Entry(question).Reference("Type").Load();
+                        //            context.Entry(question).Collection("FreeAnswers").Load();
+                        //            context.Entry(question).Collection("MultipleAnswers").Load();
+                        //            context.Entry(question).Collection("SingleAnswers").Load();
 
+                        //            question.FreeAnswers.ForEach(answer => answer.EmployeeFreeAnswers))
+                        //        })
+                        //    );
+                        //}
+                    }
+                    else if (message == Message.AddNewSurvey) {
+                        buffer = await client.ReadFromStream(4);
+                        buffer = await client.ReadFromStream(BitConverter.ToInt32(buffer, 0));
+
+                        Survey survey = Survey.FromDTO(JsonSerializer.Deserialize<SurveyDTO>(Encoding.UTF8.GetString(buffer)));
+
+                        using (SurveysContext context = new()) {
+
+                            context.Surveys.Add(survey);
+                            context.SaveChanges();
+                        }
+                        await SendMessageClient.SendDataSaveSuccessMessage(client, "Новый опрос добавлен в базу данных!");
+                    }
+                    else if (message == Message.EditSurvey) {
+                        buffer = await client.ReadFromStream(4);
+                        buffer = await client.ReadFromStream(BitConverter.ToInt32(buffer, 0));
+
+                        Survey survey = Survey.FromDTO(JsonSerializer.Deserialize<SurveyDTO>(Encoding.UTF8.GetString(buffer)));
+                        foreach (var question in survey.Questions)
+                            question.Type = null;
+                        UpdateSurvey(survey);
+                        //Question[]? questions = context.Questions.Where(question => question.SurveyId == modifiedSurvey.Id).ToArray();
+                        //context.RemoveRange(questions.Where(question => !modifiedSurvey.Questions.Any(q => q.Id == question.Id)).ToArray());
+                        //context.Questions.AddRange(modifiedSurvey.Questions.Where(question => !context.Questions.Any(q => q.Id == question.Id)).ToArray());
+
+                        await SendMessageClient.SendDataSaveSuccessMessage(client, "Измененые опрос зафиксирован в базе данных!");
+                    }
+                    else if (message == Message.RemoveSurvey) {
+                        buffer = await client.ReadFromStream(4);
+                        int surveyId = BitConverter.ToInt32(buffer, 0);
+
+                        Survey survey = new Survey() { Id = surveyId };
+
+                        using (SurveysContext context = new()) {
+                            context.Surveys.Remove(survey);
+                            context.SaveChanges();
+                        }
+                        await SendMessageClient.SendDataSaveSuccessMessage(client, "Опрос удален из базы данных!");
+                    }
 
                 }
             }
@@ -278,6 +320,199 @@ namespace Server {
                     _clients.Remove(client);
                 }
             }
+
+
+        }
+        private void UpdateSurvey(Survey survey) {
+            using (SurveysContext context = new()) {
+                //Survey surveyFromDB = context.Surveys
+                //    .Where(s => s.Id == survey.Id)
+                //    .Include(s => s.Questions)
+                //    .Single();
+                //surveyFromDB.Questions.ForEach(
+                //    question => {
+                //        context.Entry(question).Collection("FreeAnswers").Load();
+                //        context.Entry(question).Collection("MultipleAnswers").Load();
+                //        context.Entry(question).Collection("SingleAnswers").Load();
+                //    });
+
+                //Update
+                //context.Entry(surveyFromDB).CurrentValues.SetValues(survey);
+
+                Question[]? questions = context.Questions.Where(question => question.SurveyId == survey.Id).ToArray();
+                context.Questions.RemoveRange(questions.Where(question => !survey.Questions.Any(q => q.Id == question.Id)).ToArray());
+                context.Questions.AddRange(survey.Questions.Where(question => !context.Questions.Any(q => q.Id == question.Id)).ToArray());
+
+                questions = survey.Questions.Where(question => context.Questions.Any(q => q.Id == question.Id && question.Id != 0)).ToArray();
+
+                foreach (Question question in questions)
+                    UpdateQuestion(context, question);
+
+                Survey surveyFromDB =  context.Surveys.Where(s => s.Id == survey.Id).Single();
+                surveyFromDB.Name = survey.Name;
+                Employee[]? employees = context.Employees.Where(e => e.Surveys.Any(s => s.Id == survey.Id)).ToArray();
+                employees.ForEach(e => e.Surveys.Remove(surveyFromDB));
+                surveyFromDB.Employees.Clear();
+                //surveyFromDB.Employees.Clear();
+
+                //context.Entry(survey).State = EntityState.Modified;
+
+                ////Delete children
+                //foreach (Question questionFromDB in surveyFromDB.Questions) {
+                //    if (!survey.Questions.Any(q => q.Id == questionFromDB.Id))
+                //        context.Questions.Remove(questionFromDB);
+                //}
+
+                ////Insert children
+                //foreach (Question question in survey.Questions) {
+                //    if (!surveyFromDB.Questions.Any(q => q.Id == question.Id))
+                //        context.Questions.Add(question);
+                //}
+
+                //foreach (Question question in survey.Questions) {
+                //    Question? questionFromDB = surveyFromDB.Questions
+                //        .Where(q => q.Id == question.Id && question.Id != 0)
+                //        .SingleOrDefault();
+
+                //    if (questionFromDB is not null)
+                //        UpdateQuestion(context, question);
+                //}
+
+                context.SaveChanges();
+            }
+        }
+
+        private void UpdateQuestion(SurveysContext context, Question question) {
+            //Question newQuestion = question;
+            //Question oldQuestion = context.Questions
+            //        .Where(q => q.Id == question.Id)
+            //        .Include(q => q.FreeAnswers).Include(q => q.MultipleAnswers).Include(q => q.SingleAnswers)
+            //        .Single();
+            //context.Entry(oldQuestion).CurrentValues.SetValues(newQuestion);
+
+            SingleAnswer[]? singleAnswers = context.SingleAnswers.Where(answer => answer.QuestionId == question.Id).ToArray();
+            context.SingleAnswers.RemoveRange(singleAnswers.Where(answer => !question.SingleAnswers.Any(a => a.Id == answer.Id)).ToArray());
+            context.SingleAnswers.AddRange(question.SingleAnswers.Where(answer => !context.SingleAnswers.Any(a => a.Id == answer.Id)).ToArray());
+            singleAnswers = question.SingleAnswers.Where(answer => context.SingleAnswers.Any(a => a.Id == answer.Id && answer.Id != 0)).ToArray();
+
+            foreach (SingleAnswer answer in singleAnswers) {
+                answer.Text = question.SingleAnswers.Where(a => a.Id == answer.Id).Single().Text;
+                Employee[]? employees = context.Employees.Where(e => e.SingleAnswers.Any(s => s.Id == answer.Id)).ToArray();
+                employees.ForEach(e => e.SingleAnswers.Remove(answer));
+                answer.Employees.Clear();
+            }
+
+
+            MultipleAnswer[]? multipleAnswers = context.MultipleAnswers.Where(answer => answer.QuestionId == question.Id).ToArray();
+            context.MultipleAnswers.RemoveRange(multipleAnswers.Where(answer => !question.MultipleAnswers.Any(a => a.Id == answer.Id)).ToArray());
+            context.MultipleAnswers.AddRange(question.MultipleAnswers.Where(answer => !context.MultipleAnswers.Any(a => a.Id == answer.Id)).ToArray());
+            multipleAnswers = question.MultipleAnswers.Where(answer => context.MultipleAnswers.Any(a => a.Id == answer.Id && answer.Id != 0)).ToArray();
+
+            foreach (MultipleAnswer answer in multipleAnswers) {
+                answer.Text = question.MultipleAnswers.Where(a => a.Id == answer.Id).Single().Text;
+                Employee[]? employees = context.Employees.Where(e => e.MultipleAnswers.Any(s => s.Id == answer.Id)).ToArray();
+                employees.ForEach(e => e.MultipleAnswers.Remove(answer));
+                answer.Employees.Clear();
+            }
+
+
+            FreeAnswer? freeAnswer = context.FreeAnswers.Where(answer => answer.QuestionId == question.Id).SingleOrDefault();
+            if (freeAnswer is not null) {
+                freeAnswer.EmployeeFreeAnswers.Clear();
+                Employee[]? employees = context.Employees.Where(e => e.EmployeeFreeAnswers.Any(e => e.FreeAnswerId == freeAnswer.Id)).ToArray();
+                //employees.ForEach(e => e.EmployeeFreeAnswers.Remove();
+                //answer.Employees.Clear();
+            }
+                context.FreeAnswers.Remove(freeAnswer);
+
+            if (freeAnswer is null && question.FreeAnswers.Count != 0)
+                context.FreeAnswers.Add(question.FreeAnswers.Single());
+
+            Question questionFromDB = context.Questions.Where(q => q.Id == question.Id).Single();
+            questionFromDB.IsRequired = question.IsRequired;
+            questionFromDB.Text = question.Text;
+            questionFromDB.QuestionTypeId = question.QuestionTypeId;
+
+            //context.SingleAnswers.RemoveRange(singleAnswers.Where(answer => !question.SingleAnswers.Any(a => a.Id == answer.Id)).ToArray());
+            //context.SingleAnswers.AddRange(question.SingleAnswers.Where(answer => !context.SingleAnswers.Any(a => a.Id == answer.Id)).ToArray());
+            //singleAnswers = question.SingleAnswers.Where(answer => context.SingleAnswers.Any(a => a.Id == answer.Id && answer.Id != 0)).ToArray();
+
+            //foreach (SingleAnswer answer in singleAnswers)
+            //    context.Entry(answer).State = EntityState.Modified;
+
+
+
+
+            //Update question
+            //context.Entry(oldQuestion).CurrentValues.SetValues(newQuestion);
+
+
+
+            //Update SingleAnswers
+            //Delete children
+            //if (newQuestion.SingleAnswers.Count == 0)
+            //    context.SingleAnswers.RemoveRange(oldQuestion.SingleAnswers);
+            //else {
+            //    foreach (SingleAnswer answerFromDB in oldQuestion.SingleAnswers) {
+            //        if (!newQuestion.SingleAnswers.Any(a => a.Id == answerFromDB.Id))
+            //            context.SingleAnswers.Remove(answerFromDB);
+            //    }
+            //    //Insert children
+            //    foreach (SingleAnswer answer in newQuestion.SingleAnswers) {
+            //        if (!oldQuestion.SingleAnswers.Any(a => a.Id == answer.Id))
+            //            context.SingleAnswers.Add(answer);
+            //    }
+            //    //Update children
+            //    foreach (SingleAnswer answer in newQuestion.SingleAnswers) {
+            //        SingleAnswer? singleAnswer = oldQuestion.SingleAnswers
+            //            .Where(a => a.Id == answer.Id && answer.Id != 0)
+            //            .SingleOrDefault();
+
+            //        if (singleAnswer is not null)
+            //            context.Entry(singleAnswer).CurrentValues.SetValues(answer);
+            //    }
+            //}
+
+
+
+            ////Update MultipleAnswers
+            ////Delete children
+            //if (newQuestion.MultipleAnswers.Count == 0) {
+            //    context.MultipleAnswers.RemoveRange(oldQuestion.MultipleAnswers);
+            //}
+            //else {
+            //    foreach (MultipleAnswer answerFromDB in oldQuestion.MultipleAnswers) {
+            //        if (!newQuestion.MultipleAnswers.Any(a => a.Id == answerFromDB.Id))
+            //            context.MultipleAnswers.Remove(answerFromDB);
+            //    }
+            //    //Insert children
+            //    foreach (MultipleAnswer answer in newQuestion.MultipleAnswers) {
+            //        if (!oldQuestion.MultipleAnswers.Any(a => a.Id == answer.Id))
+            //            context.MultipleAnswers.Add(answer);
+            //    }
+            //    //Update children
+            //    foreach (MultipleAnswer answer in newQuestion.MultipleAnswers) {
+            //        MultipleAnswer? multipleAnswer = oldQuestion.MultipleAnswers
+            //            .Where(a => a.Id == answer.Id && answer.Id != 0)
+            //            .SingleOrDefault();
+
+            //        if (multipleAnswer is not null)
+            //            context.Entry(multipleAnswer).CurrentValues.SetValues(answer);
+            //    }
+            //}
+
+
+            ////Update FreeAnswers
+            ////Delete children
+            //foreach (FreeAnswer answerFromDB in oldQuestion.FreeAnswers) {
+            //    if (newQuestion.FreeAnswers.Count == 0)
+            //        context.FreeAnswers.Remove(answerFromDB);
+            //}
+            ////Insert children
+            //foreach (FreeAnswer answer in newQuestion.FreeAnswers) {
+            //    if (oldQuestion.FreeAnswers.Count == 0)
+            //        context.FreeAnswers.Add(answer);
+            //}
         }
     }
 }
