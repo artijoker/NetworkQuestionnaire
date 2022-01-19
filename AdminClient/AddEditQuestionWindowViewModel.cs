@@ -132,6 +132,7 @@ namespace AdminClient {
         }
         public AddEditQuestionWindowViewModel(QuestionType[] questionTypes, Question question) {
             Question = new();
+            SaveAnswerId(question);
             QuestionTypes = questionTypes;
             TextQuestion = question.Text;
             _questionId = question.Id;
@@ -172,24 +173,57 @@ namespace AdminClient {
             Question.QuestionTypeId = SelectedQuestionType.Id;
             Question.Type = SelectedQuestionType;
 
-            if (SelectedQuestionType.Type == "Free")
+            if (SelectedQuestionType.Type == "Free" && Question.FreeAnswers.Count == 0) {
                 Question.FreeAnswers.Add(new FreeAnswer() { Id = 0, QuestionId = _questionId });
-            else {
-                foreach (var answer in Answers) {
-                    if (SelectedQuestionType.Type == "Single")
-                        Question.SingleAnswers.Add(new() { Id = 0, QuestionId = _questionId, Text = answer });
-                    else if (SelectedQuestionType.Type == "Multiple")
-                        Question.MultipleAnswers.Add(new() { Id = 0, QuestionId = _questionId, Text = answer });
-                    else
-                        throw new FormatException();
+                Question.MultipleAnswers.Clear();
+                Question.SingleAnswers.Clear();
+            }
+            if (SelectedQuestionType.Type == "Single") {
+                if (Question.SingleAnswers.Count > 0) {
+                    List<SingleAnswer> singleAnswers = Question.SingleAnswers.ToList();
+                    for (int i = 0; i < Answers.Count; i++) {
+                        if (i <= singleAnswers.Count - 1)
+                            singleAnswers[i].Text = Answers[i];
+                        else
+                            singleAnswers.Add(new() { Id = 0, QuestionId = _questionId, Text = Answers[i] });
+                    }
+                    Question.SingleAnswers = singleAnswers.GetRange(0, Answers.Count);
+                }
+                else {
+                    foreach (var answer in Answers) 
+                            Question.SingleAnswers.Add(new() { Id = 0, QuestionId = _questionId, Text = answer });
+                    
+                    Question.FreeAnswers.Clear();
+                    Question.MultipleAnswers.Clear();
                 }
             }
+            if (SelectedQuestionType.Type == "Multiple") {
+                if (Question.MultipleAnswers.Count > 0) {
+                    List<MultipleAnswer> multipleAnswers = Question.MultipleAnswers.ToList();
+                    for (int i = 0; i < Answers.Count; i++) {
+                        if (i <= multipleAnswers.Count - 1)
+                            multipleAnswers[i].Text = Answers[i];
+                        else
+                            multipleAnswers.Add(new() { Id = 0, QuestionId = _questionId, Text = Answers[i] });
+                    }
+                    Question.MultipleAnswers = multipleAnswers.GetRange(0, Answers.Count);
+                }
+                else {
+                    foreach (var answer in Answers)
+                            Question.MultipleAnswers.Add(new() { Id = 0, QuestionId = _questionId, Text = answer });
+                    
+                    Question.FreeAnswers.Clear();
+                    Question.SingleAnswers.Clear();
+                }
+            }
+
 
         }
 
         private void AddAnswer() {
             IsEnabledInterface = false;
             VisibilityInputField = Visibility.Visible;
+            SelectedAnswer = null;
         }
 
         private void EditAnswer() {
@@ -204,25 +238,54 @@ namespace AdminClient {
         private void RemoveAnswer() {
             if (SelectedAnswer is null)
                 return;
+            if (SelectedQuestionType.Type == "Single") {
+                if (Question.SingleAnswers.Count > 0) {
+                    int index = Answers.IndexOf(SelectedAnswer);
+                    if (index < Question.SingleAnswers.Count - 1)
+                        Question.SingleAnswers.Remove(Question.SingleAnswers.ElementAt(index));
+                }
+            }
+
+            if (SelectedQuestionType.Type == "Multiple") {
+                if (Question.MultipleAnswers.Count > 0) {
+                    int index = Answers.IndexOf(SelectedAnswer);
+                    if (index < Question.MultipleAnswers.Count - 1)
+                        Question.MultipleAnswers.Remove(Question.MultipleAnswers.ElementAt(index));
+                }
+            }
+
             Answers.Remove(SelectedAnswer);
         }
 
         private void OKInputField() {
-            IsEnabledInterface = true;
-            VisibilityInputField = Visibility.Hidden;
-
             if (string.IsNullOrEmpty(TextAnswer))
                 return;
-            if (SelectedAnswer is null) {
-                Answers[Answers.IndexOf(SelectedAnswer)] = TextAnswer;
-            }
-            Answers.Add(TextAnswer);
 
+            if (SelectedAnswer is not null)
+                Answers[Answers.IndexOf(SelectedAnswer)] = TextAnswer;
+            else
+                Answers.Add(TextAnswer);
+
+            TextAnswer = "";
+
+            IsEnabledInterface = true;
+            VisibilityInputField = Visibility.Hidden;
         }
         private void CancelInputField() {
             IsEnabledInterface = true;
             VisibilityInputField = Visibility.Hidden;
             TextAnswer = "";
+        }
+
+        private void SaveAnswerId(Question question) {
+            if (question.FreeAnswers.Count == 1) 
+                Question.FreeAnswers.Add(new FreeAnswer() { Id = question.FreeAnswers.Single().Id, QuestionId = question.Id });
+            if (question.SingleAnswers.Count > 0) 
+                foreach (var answer in question.SingleAnswers) 
+                    Question.SingleAnswers.Add(new SingleAnswer() { Id = answer.Id, QuestionId = question.Id });
+            if (question.MultipleAnswers.Count > 0)
+                foreach (var answer in question.MultipleAnswers)
+                    Question.MultipleAnswers.Add(new MultipleAnswer() { Id = answer.Id, QuestionId = question.Id });
         }
     }
 }

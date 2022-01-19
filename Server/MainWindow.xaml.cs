@@ -325,6 +325,7 @@ namespace Server {
         }
         private void UpdateSurvey(Survey survey) {
             using (SurveysContext context = new()) {
+               
                 //Survey surveyFromDB = context.Surveys
                 //    .Where(s => s.Id == survey.Id)
                 //    .Include(s => s.Questions)
@@ -341,7 +342,10 @@ namespace Server {
 
                 Question[]? questions = context.Questions.Where(question => question.SurveyId == survey.Id).ToArray();
                 context.Questions.RemoveRange(questions.Where(question => !survey.Questions.Any(q => q.Id == question.Id)).ToArray());
-                context.Questions.AddRange(survey.Questions.Where(question => !context.Questions.Any(q => q.Id == question.Id)).ToArray());
+                //foreach (var question in survey.Questions.Where(question => !context.Questions.Any(q => q.Id == question.Id))) {
+                //    context.Questions.Add(question);
+                //}
+                //context.Questions.AddRange(survey.Questions.Where(question => !context.Questions.Any(q => q.Id == question.Id)).ToArray());
 
                 questions = survey.Questions.Where(question => context.Questions.Any(q => q.Id == question.Id && question.Id != 0)).ToArray();
 
@@ -350,11 +354,11 @@ namespace Server {
 
                 Survey surveyFromDB =  context.Surveys.Where(s => s.Id == survey.Id).Single();
                 surveyFromDB.Name = survey.Name;
-                Employee[]? employees = context.Employees.Where(e => e.Surveys.Any(s => s.Id == survey.Id)).ToArray();
+                Employee[]? employees = context.Employees.Include(e => e.Surveys).Where(e => e.Surveys.Any(s => s.Id == surveyFromDB.Id)).ToArray();
                 employees.ForEach(e => e.Surveys.Remove(surveyFromDB));
                 surveyFromDB.Employees.Clear();
-                //surveyFromDB.Employees.Clear();
 
+                //context.Attach(survey);
                 //context.Entry(survey).State = EntityState.Modified;
 
                 ////Delete children
@@ -377,8 +381,14 @@ namespace Server {
                 //    if (questionFromDB is not null)
                 //        UpdateQuestion(context, question);
                 //}
+                try {
+                    context.SaveChanges();
+                }
+                catch (DbUpdateException ex) {
 
-                context.SaveChanges();
+                    MessageBox.Show(ex.Message);
+                }
+                
             }
         }
 
@@ -390,129 +400,59 @@ namespace Server {
             //        .Single();
             //context.Entry(oldQuestion).CurrentValues.SetValues(newQuestion);
 
-            SingleAnswer[]? singleAnswers = context.SingleAnswers.Where(answer => answer.QuestionId == question.Id).ToArray();
-            context.SingleAnswers.RemoveRange(singleAnswers.Where(answer => !question.SingleAnswers.Any(a => a.Id == answer.Id)).ToArray());
+            SingleAnswer[]? singleAnswersFromDB = context.SingleAnswers.Where(answer => answer.QuestionId == question.Id).ToArray();
+            context.SingleAnswers.RemoveRange(singleAnswersFromDB.Where(answer => !question.SingleAnswers.Any(a => a.Id == answer.Id)).ToArray());
             context.SingleAnswers.AddRange(question.SingleAnswers.Where(answer => !context.SingleAnswers.Any(a => a.Id == answer.Id)).ToArray());
-            singleAnswers = question.SingleAnswers.Where(answer => context.SingleAnswers.Any(a => a.Id == answer.Id && answer.Id != 0)).ToArray();
+            singleAnswersFromDB = context.SingleAnswers.Local.Where(answer => answer.QuestionId == question.Id).ToArray();
+            singleAnswersFromDB = singleAnswersFromDB.Where(answer => answer.Id != 0).ToArray();
+            //singleAnswersFromDB = question.SingleAnswers.Where(answer => context.SingleAnswers.Any(a => a.Id == answer.Id && answer.Id != 0)).ToArray();
 
-            foreach (SingleAnswer answer in singleAnswers) {
+
+            foreach (SingleAnswer answer in singleAnswersFromDB) {
                 answer.Text = question.SingleAnswers.Where(a => a.Id == answer.Id).Single().Text;
-                Employee[]? employees = context.Employees.Where(e => e.SingleAnswers.Any(s => s.Id == answer.Id)).ToArray();
+                Employee[]? employees = context.Employees.Include(e => e.SingleAnswers).Where(e => e.SingleAnswers.Any(s => s.Id == answer.Id)).ToArray();
                 employees.ForEach(e => e.SingleAnswers.Remove(answer));
                 answer.Employees.Clear();
             }
 
 
-            MultipleAnswer[]? multipleAnswers = context.MultipleAnswers.Where(answer => answer.QuestionId == question.Id).ToArray();
-            context.MultipleAnswers.RemoveRange(multipleAnswers.Where(answer => !question.MultipleAnswers.Any(a => a.Id == answer.Id)).ToArray());
-            context.MultipleAnswers.AddRange(question.MultipleAnswers.Where(answer => !context.MultipleAnswers.Any(a => a.Id == answer.Id)).ToArray());
-            multipleAnswers = question.MultipleAnswers.Where(answer => context.MultipleAnswers.Any(a => a.Id == answer.Id && answer.Id != 0)).ToArray();
+            MultipleAnswer[]? multipleAnswersFromDB = context.MultipleAnswers.Where(answer => answer.QuestionId == question.Id).ToArray();
+            context.MultipleAnswers.RemoveRange(multipleAnswersFromDB.Where(answer => !question.MultipleAnswers.Any(a => a.Id == answer.Id)).ToArray());
 
-            foreach (MultipleAnswer answer in multipleAnswers) {
+            context.MultipleAnswers.AddRange(question.MultipleAnswers.Where(answer => !context.MultipleAnswers.Any(a => a.Id == answer.Id)).ToArray());
+
+            multipleAnswersFromDB = context.MultipleAnswers.Local.Where(answer => answer.QuestionId == question.Id).ToArray();
+            multipleAnswersFromDB = multipleAnswersFromDB.Where(answer => answer.Id != 0).ToArray();
+            //multipleAnswersFromDB = context.MultipleAnswers.Where(answer => question.MultipleAnswers.Any(a => a.QuestionId == answer.QuestionId && answer.Id != 0)).ToArray();
+            //multipleAnswersFromDB = question.MultipleAnswers.Where(answer => context.MultipleAnswers.Any(a => a.Id == answer.Id && answer.Id != 0)).ToArray();
+
+            foreach (MultipleAnswer answer in multipleAnswersFromDB) {
                 answer.Text = question.MultipleAnswers.Where(a => a.Id == answer.Id).Single().Text;
-                Employee[]? employees = context.Employees.Where(e => e.MultipleAnswers.Any(s => s.Id == answer.Id)).ToArray();
+                Employee[]? employees = context.Employees.Include(e => e.MultipleAnswers).Where(e => e.MultipleAnswers.Any(s => s.Id == answer.Id)).ToArray();
                 employees.ForEach(e => e.MultipleAnswers.Remove(answer));
                 answer.Employees.Clear();
             }
 
 
-            FreeAnswer? freeAnswer = context.FreeAnswers.Where(answer => answer.QuestionId == question.Id).SingleOrDefault();
-            if (freeAnswer is not null) {
-                freeAnswer.EmployeeFreeAnswers.Clear();
-                Employee[]? employees = context.Employees.Where(e => e.EmployeeFreeAnswers.Any(e => e.FreeAnswerId == freeAnswer.Id)).ToArray();
-                //employees.ForEach(e => e.EmployeeFreeAnswers.Remove();
-                //answer.Employees.Clear();
+            FreeAnswer? freeAnswerFromDB = context.FreeAnswers.Where(answer => answer.QuestionId == question.Id).SingleOrDefault();
+            if (freeAnswerFromDB is not null) {
+                if (question.FreeAnswers.Count == 0) {
+                    context.FreeAnswers.Remove(freeAnswerFromDB);
+                }
+                else {
+                    freeAnswerFromDB.EmployeeFreeAnswers.Clear();
+                    Employee[]? employees = context.Employees.Include(e => e.EmployeeFreeAnswers).Where(e => e.EmployeeFreeAnswers.Any(e => e.FreeAnswerId == freeAnswerFromDB.Id)).ToArray();
+                    employees.ForEach(e => e.EmployeeFreeAnswers.Remove(context.EmployeesFreeAnswers.Where(e => e.FreeAnswerId == freeAnswerFromDB.Id).Single()));
+                }
             }
-                context.FreeAnswers.Remove(freeAnswer);
 
-            if (freeAnswer is null && question.FreeAnswers.Count != 0)
+            if (freeAnswerFromDB is null && question.FreeAnswers.Count == 1)
                 context.FreeAnswers.Add(question.FreeAnswers.Single());
 
             Question questionFromDB = context.Questions.Where(q => q.Id == question.Id).Single();
             questionFromDB.IsRequired = question.IsRequired;
             questionFromDB.Text = question.Text;
             questionFromDB.QuestionTypeId = question.QuestionTypeId;
-
-            //context.SingleAnswers.RemoveRange(singleAnswers.Where(answer => !question.SingleAnswers.Any(a => a.Id == answer.Id)).ToArray());
-            //context.SingleAnswers.AddRange(question.SingleAnswers.Where(answer => !context.SingleAnswers.Any(a => a.Id == answer.Id)).ToArray());
-            //singleAnswers = question.SingleAnswers.Where(answer => context.SingleAnswers.Any(a => a.Id == answer.Id && answer.Id != 0)).ToArray();
-
-            //foreach (SingleAnswer answer in singleAnswers)
-            //    context.Entry(answer).State = EntityState.Modified;
-
-
-
-
-            //Update question
-            //context.Entry(oldQuestion).CurrentValues.SetValues(newQuestion);
-
-
-
-            //Update SingleAnswers
-            //Delete children
-            //if (newQuestion.SingleAnswers.Count == 0)
-            //    context.SingleAnswers.RemoveRange(oldQuestion.SingleAnswers);
-            //else {
-            //    foreach (SingleAnswer answerFromDB in oldQuestion.SingleAnswers) {
-            //        if (!newQuestion.SingleAnswers.Any(a => a.Id == answerFromDB.Id))
-            //            context.SingleAnswers.Remove(answerFromDB);
-            //    }
-            //    //Insert children
-            //    foreach (SingleAnswer answer in newQuestion.SingleAnswers) {
-            //        if (!oldQuestion.SingleAnswers.Any(a => a.Id == answer.Id))
-            //            context.SingleAnswers.Add(answer);
-            //    }
-            //    //Update children
-            //    foreach (SingleAnswer answer in newQuestion.SingleAnswers) {
-            //        SingleAnswer? singleAnswer = oldQuestion.SingleAnswers
-            //            .Where(a => a.Id == answer.Id && answer.Id != 0)
-            //            .SingleOrDefault();
-
-            //        if (singleAnswer is not null)
-            //            context.Entry(singleAnswer).CurrentValues.SetValues(answer);
-            //    }
-            //}
-
-
-
-            ////Update MultipleAnswers
-            ////Delete children
-            //if (newQuestion.MultipleAnswers.Count == 0) {
-            //    context.MultipleAnswers.RemoveRange(oldQuestion.MultipleAnswers);
-            //}
-            //else {
-            //    foreach (MultipleAnswer answerFromDB in oldQuestion.MultipleAnswers) {
-            //        if (!newQuestion.MultipleAnswers.Any(a => a.Id == answerFromDB.Id))
-            //            context.MultipleAnswers.Remove(answerFromDB);
-            //    }
-            //    //Insert children
-            //    foreach (MultipleAnswer answer in newQuestion.MultipleAnswers) {
-            //        if (!oldQuestion.MultipleAnswers.Any(a => a.Id == answer.Id))
-            //            context.MultipleAnswers.Add(answer);
-            //    }
-            //    //Update children
-            //    foreach (MultipleAnswer answer in newQuestion.MultipleAnswers) {
-            //        MultipleAnswer? multipleAnswer = oldQuestion.MultipleAnswers
-            //            .Where(a => a.Id == answer.Id && answer.Id != 0)
-            //            .SingleOrDefault();
-
-            //        if (multipleAnswer is not null)
-            //            context.Entry(multipleAnswer).CurrentValues.SetValues(answer);
-            //    }
-            //}
-
-
-            ////Update FreeAnswers
-            ////Delete children
-            //foreach (FreeAnswer answerFromDB in oldQuestion.FreeAnswers) {
-            //    if (newQuestion.FreeAnswers.Count == 0)
-            //        context.FreeAnswers.Remove(answerFromDB);
-            //}
-            ////Insert children
-            //foreach (FreeAnswer answer in newQuestion.FreeAnswers) {
-            //    if (oldQuestion.FreeAnswers.Count == 0)
-            //        context.FreeAnswers.Add(answer);
-            //}
         }
     }
 }
