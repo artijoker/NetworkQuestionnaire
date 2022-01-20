@@ -76,15 +76,21 @@ namespace AdminClient {
 
         private void AddQuestion() {
             AddEditQuestionWindow dialog = new(_questionTypes);
-            if (dialog.ShowDialog() == true)
+            if (dialog.ShowDialog() == true) {
+                Question question = dialog.ViewModel.Question;
+                question.SurveyId = _surveyId;
                 Questions.Add(dialog.ViewModel.Question);
+            }
             
         }
 
         private void EditQuestion() {
             AddEditQuestionWindow dialog = new(_questionTypes, SelectedQuestion);
-            if (dialog.ShowDialog() == true)
+            if (dialog.ShowDialog() == true) {
+                Question question = dialog.ViewModel.Question;
+                question.SurveyId = _surveyId;
                 Questions[Questions.IndexOf(SelectedQuestion)] = dialog.ViewModel.Question;
+            }
             SelectedQuestion = null;
         }
 

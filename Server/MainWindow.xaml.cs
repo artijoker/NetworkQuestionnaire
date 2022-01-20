@@ -289,10 +289,7 @@ namespace Server {
                         foreach (var question in survey.Questions)
                             question.Type = null;
                         UpdateSurvey(survey);
-                        //Question[]? questions = context.Questions.Where(question => question.SurveyId == modifiedSurvey.Id).ToArray();
-                        //context.RemoveRange(questions.Where(question => !modifiedSurvey.Questions.Any(q => q.Id == question.Id)).ToArray());
-                        //context.Questions.AddRange(modifiedSurvey.Questions.Where(question => !context.Questions.Any(q => q.Id == question.Id)).ToArray());
-
+                        
                         await SendMessageClient.SendDataSaveSuccessMessage(client, "Измененые опрос зафиксирован в базе данных!");
                     }
                     else if (message == Message.RemoveSurvey) {
@@ -325,27 +322,12 @@ namespace Server {
         }
         private void UpdateSurvey(Survey survey) {
             using (SurveysContext context = new()) {
-               
-                //Survey surveyFromDB = context.Surveys
-                //    .Where(s => s.Id == survey.Id)
-                //    .Include(s => s.Questions)
-                //    .Single();
-                //surveyFromDB.Questions.ForEach(
-                //    question => {
-                //        context.Entry(question).Collection("FreeAnswers").Load();
-                //        context.Entry(question).Collection("MultipleAnswers").Load();
-                //        context.Entry(question).Collection("SingleAnswers").Load();
-                //    });
-
                 //Update
                 //context.Entry(surveyFromDB).CurrentValues.SetValues(survey);
 
                 Question[]? questions = context.Questions.Where(question => question.SurveyId == survey.Id).ToArray();
                 context.Questions.RemoveRange(questions.Where(question => !survey.Questions.Any(q => q.Id == question.Id)).ToArray());
-                //foreach (var question in survey.Questions.Where(question => !context.Questions.Any(q => q.Id == question.Id))) {
-                //    context.Questions.Add(question);
-                //}
-                //context.Questions.AddRange(survey.Questions.Where(question => !context.Questions.Any(q => q.Id == question.Id)).ToArray());
+                context.Questions.AddRange(survey.Questions.Where(question => !context.Questions.Any(q => q.Id == question.Id)).ToArray());
 
                 questions = survey.Questions.Where(question => context.Questions.Any(q => q.Id == question.Id && question.Id != 0)).ToArray();
 
@@ -357,55 +339,15 @@ namespace Server {
                 Employee[]? employees = context.Employees.Include(e => e.Surveys).Where(e => e.Surveys.Any(s => s.Id == surveyFromDB.Id)).ToArray();
                 employees.ForEach(e => e.Surveys.Remove(surveyFromDB));
                 surveyFromDB.Employees.Clear();
-
-                //context.Attach(survey);
-                //context.Entry(survey).State = EntityState.Modified;
-
-                ////Delete children
-                //foreach (Question questionFromDB in surveyFromDB.Questions) {
-                //    if (!survey.Questions.Any(q => q.Id == questionFromDB.Id))
-                //        context.Questions.Remove(questionFromDB);
-                //}
-
-                ////Insert children
-                //foreach (Question question in survey.Questions) {
-                //    if (!surveyFromDB.Questions.Any(q => q.Id == question.Id))
-                //        context.Questions.Add(question);
-                //}
-
-                //foreach (Question question in survey.Questions) {
-                //    Question? questionFromDB = surveyFromDB.Questions
-                //        .Where(q => q.Id == question.Id && question.Id != 0)
-                //        .SingleOrDefault();
-
-                //    if (questionFromDB is not null)
-                //        UpdateQuestion(context, question);
-                //}
-                try {
-                    context.SaveChanges();
-                }
-                catch (DbUpdateException ex) {
-
-                    MessageBox.Show(ex.Message);
-                }
-                
             }
         }
 
         private void UpdateQuestion(SurveysContext context, Question question) {
-            //Question newQuestion = question;
-            //Question oldQuestion = context.Questions
-            //        .Where(q => q.Id == question.Id)
-            //        .Include(q => q.FreeAnswers).Include(q => q.MultipleAnswers).Include(q => q.SingleAnswers)
-            //        .Single();
-            //context.Entry(oldQuestion).CurrentValues.SetValues(newQuestion);
-
             SingleAnswer[]? singleAnswersFromDB = context.SingleAnswers.Where(answer => answer.QuestionId == question.Id).ToArray();
             context.SingleAnswers.RemoveRange(singleAnswersFromDB.Where(answer => !question.SingleAnswers.Any(a => a.Id == answer.Id)).ToArray());
             context.SingleAnswers.AddRange(question.SingleAnswers.Where(answer => !context.SingleAnswers.Any(a => a.Id == answer.Id)).ToArray());
             singleAnswersFromDB = context.SingleAnswers.Local.Where(answer => answer.QuestionId == question.Id).ToArray();
             singleAnswersFromDB = singleAnswersFromDB.Where(answer => answer.Id != 0).ToArray();
-            //singleAnswersFromDB = question.SingleAnswers.Where(answer => context.SingleAnswers.Any(a => a.Id == answer.Id && answer.Id != 0)).ToArray();
 
 
             foreach (SingleAnswer answer in singleAnswersFromDB) {
@@ -423,9 +365,7 @@ namespace Server {
 
             multipleAnswersFromDB = context.MultipleAnswers.Local.Where(answer => answer.QuestionId == question.Id).ToArray();
             multipleAnswersFromDB = multipleAnswersFromDB.Where(answer => answer.Id != 0).ToArray();
-            //multipleAnswersFromDB = context.MultipleAnswers.Where(answer => question.MultipleAnswers.Any(a => a.QuestionId == answer.QuestionId && answer.Id != 0)).ToArray();
-            //multipleAnswersFromDB = question.MultipleAnswers.Where(answer => context.MultipleAnswers.Any(a => a.Id == answer.Id && answer.Id != 0)).ToArray();
-
+           
             foreach (MultipleAnswer answer in multipleAnswersFromDB) {
                 answer.Text = question.MultipleAnswers.Where(a => a.Id == answer.Id).Single().Text;
                 Employee[]? employees = context.Employees.Include(e => e.MultipleAnswers).Where(e => e.MultipleAnswers.Any(s => s.Id == answer.Id)).ToArray();
