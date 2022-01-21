@@ -10,7 +10,6 @@ using System.Windows;
 
 namespace AdminClient {
     public class AddEditEmployeeWindowViewModel : INotifyPropertyChanged {
-        private static Regex _pattern = new("^7[0-9]{11}");
         private int _id;
         private string _login;
         private string _password;
@@ -18,7 +17,6 @@ namespace AdminClient {
         private string _surname;
         private string _patronymic;
         private DateTime _birthDate;
-        private string _phoneNumber;
         private string _email;
         private bool _isDialogResult;
 
@@ -82,13 +80,6 @@ namespace AdminClient {
             }
         }
 
-        public string PhoneNumber {
-            get => _phoneNumber;
-            set {
-                _phoneNumber = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PhoneNumber)));
-            }
-        }
 
         public string Email {
             get => _email;
@@ -118,7 +109,6 @@ namespace AdminClient {
             Surname = employee.Surname;
             Patronymic = employee.Patronymic;
             BirthDate = employee.BirthDate;
-            PhoneNumber = employee.PhoneNumber;
             Email = employee.Email;
             Login = employee.Login;
             Password = employee.Password;
@@ -130,36 +120,57 @@ namespace AdminClient {
 
         private void Save() {
             if (string.IsNullOrEmpty(Name)) {
-                MessageBox.Show("Введите имя сотрудника!");
+                MessageBox.Show(
+                    "Введите имя сотрудника!",
+                    "Внимание",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
                 return;
             }
             if (string.IsNullOrEmpty(Surname)) {
-                MessageBox.Show("Введите фамилию сотрудника!");
+                MessageBox.Show(
+                    "Введите фамилию сотрудника!",
+                    "Внимание",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
                 return;
             }
-            if (BirthDate.Date == DateTime.Now.Date) {
-                MessageBox.Show("Введите дату рождения сотрудника!");
-                return;
-            }
-            if (string.IsNullOrEmpty(PhoneNumber)) {
-                MessageBox.Show("Введите номер телефона сотрудника!");
+            if (BirthDate.Date > DateTime.Now.Date) {
+                MessageBox.Show(
+                   "Нельзя указывать будущую дату!",
+                   "Внимание",
+                   MessageBoxButton.OK,
+                   MessageBoxImage.Warning
+               );
                 return;
             }
             if (string.IsNullOrEmpty(Email)) {
-                MessageBox.Show("Введите email сотрудника!");
+                MessageBox.Show(
+                   "Введите email сотрудника!",
+                   "Внимание",
+                   MessageBoxButton.OK,
+                   MessageBoxImage.Warning
+               );
                 return;
             }
             if (string.IsNullOrEmpty(Login)) {
-                MessageBox.Show("Введите логин сотрудника!");
+                MessageBox.Show(
+                   "Введите логин сотрудника!",
+                   "Внимание",
+                   MessageBoxButton.OK,
+                   MessageBoxImage.Warning
+               );
                 return;
             }
             if (string.IsNullOrEmpty(Password)) {
-                MessageBox.Show("Введите пароль сотрудника!");
-                return;
-            }
-            
-            if (_pattern.IsMatch(PhoneNumber)) {
-                MessageBox.Show("Телефонный номер указан неверно!\n Введите номер телофона в формате 7**********. Где * - цифра а 7 - это код старны");
+                MessageBox.Show(
+                   "Введите пароль сотрудника!",
+                   "Внимание",
+                   MessageBoxButton.OK,
+                   MessageBoxImage.Warning
+               );
                 return;
             }
             Employee.Id = _id;
@@ -167,7 +178,6 @@ namespace AdminClient {
             Employee.Surname = Surname;
             Employee.Patronymic = Patronymic;
             Employee.BirthDate = BirthDate;
-            Employee.PhoneNumber = PhoneNumber;
             Employee.Email = Email;
             Employee.Login = Login;
             Employee.Password = Password;

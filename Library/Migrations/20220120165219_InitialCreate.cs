@@ -19,7 +19,6 @@ namespace Library.Migrations
                     Surname = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Patronymic = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     BirthDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    PhoneNumber = table.Column<string>(type: "nvarchar(12)", maxLength: 12, nullable: false),
                     Email = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
                 },
                 constraints: table =>
@@ -46,7 +45,7 @@ namespace Library.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false)
+                    Name = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -238,13 +237,13 @@ namespace Library.Migrations
 
             migrationBuilder.InsertData(
                 table: "Employees",
-                columns: new[] { "Id", "BirthDate", "Email", "Login", "Name", "Password", "Patronymic", "PhoneNumber", "Surname" },
+                columns: new[] { "Id", "BirthDate", "Email", "Login", "Name", "Password", "Patronymic", "Surname" },
                 values: new object[,]
                 {
-                    { 1, new DateTime(1989, 7, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "ilya7261@yandex.ru", "login", "Петр", "password", null, "79997371314", "Большаков" },
-                    { 2, new DateTime(1973, 4, 22, 0, 0, 0, 0, DateTimeKind.Unspecified), "semen3401@hotmail.com", "semen3401", "Семен", "8e71c26d7", "Никитович", "79265391214", "Аксенчук" },
-                    { 3, new DateTime(1984, 11, 5, 0, 0, 0, 0, DateTimeKind.Unspecified), "milan1984@gmail.com", "milan1984", "Милан", "7822cdf91", null, "79338779078", "Яимов" },
-                    { 4, new DateTime(1989, 3, 18, 0, 0, 0, 0, DateTimeKind.Unspecified), "tamara18031986@gmail.com", "tamara18031989", "Тамара", "3f3af347b", "Алексеевна", "79302385258", "Куксилова" }
+                    { 1, new DateTime(1989, 7, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "petr1989@yandex.ru", "login", "Петр", "password", null, "Большаков" },
+                    { 2, new DateTime(1973, 4, 22, 0, 0, 0, 0, DateTimeKind.Unspecified), "semen3401@hotmail.com", "semen3401", "Семен", "8e71c26d7", "Никитович", "Аксенчук" },
+                    { 3, new DateTime(1984, 11, 5, 0, 0, 0, 0, DateTimeKind.Unspecified), "milan1984@gmail.com", "milan1984", "Милан", "7822cdf91", null, "Яимов" },
+                    { 4, new DateTime(1989, 3, 18, 0, 0, 0, 0, DateTimeKind.Unspecified), "tamara18031986@gmail.com", "tamara18031989", "Тамара", "3f3af347b", "Алексеевна", "Куксилова" }
                 });
 
             migrationBuilder.InsertData(
@@ -438,12 +437,6 @@ namespace Library.Migrations
                 name: "IX_Employees_Login",
                 table: "Employees",
                 column: "Login",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Employees_PhoneNumber",
-                table: "Employees",
-                column: "PhoneNumber",
                 unique: true);
 
             migrationBuilder.CreateIndex(

@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace AdminClient {
     public class AddEditSurveyWindowViewModel : INotifyPropertyChanged {
@@ -81,7 +82,7 @@ namespace AdminClient {
                 question.SurveyId = _surveyId;
                 Questions.Add(dialog.ViewModel.Question);
             }
-            
+
         }
 
         private void EditQuestion() {
@@ -101,6 +102,25 @@ namespace AdminClient {
         }
 
         private void Save() {
+            if (string.IsNullOrEmpty(TextSurvey)) {
+                MessageBox.Show(
+                    "Введите название опроса!",
+                    "Внимание",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
+                return;
+            }
+
+            if (Questions.Count == 0) {
+                MessageBox.Show(
+                    "Этот опрос нельзя сохранить так как в нем отсутствуют вопросы!",
+                    "Внимание",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
+                return;
+            }
             SaveSurvey();
             IsDialogResult = true;
         }
@@ -109,7 +129,7 @@ namespace AdminClient {
 
         private void SaveSurvey() {
             Survey.Id = _surveyId;
-            Survey.Name = TextSurvey;
+            Survey.Name = TextSurvey.Trim();
             Survey.Questions = Questions.ToList();
         }
     }

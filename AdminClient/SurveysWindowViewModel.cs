@@ -18,7 +18,6 @@ namespace AdminClient {
         private bool _isEnabledInterface;
         private bool _isHide;
         private Visibility _visibilityProcess;
-        private Visibility _visibilityReady;
 
         private Survey _selectedSurvey;
         private string _text;
@@ -49,13 +48,6 @@ namespace AdminClient {
             }
         }
 
-        public Visibility VisibilityReady {
-            get => _visibilityReady;
-            set {
-                _visibilityReady = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(VisibilityReady)));
-            }
-        }
         public Survey SelectedSurvey {
             get => _selectedSurvey;
             set {
@@ -80,8 +72,6 @@ namespace AdminClient {
             _server = server;
             IsEnabledInterface = true;
             VisibilityProcess = Visibility.Hidden;
-            VisibilityReady = Visibility.Hidden;
-            ReadyCommand = new(Ready);
             AddSurveyCommand = new(AddSurvey);
             EditSurveyCommand = new(EditSurvey);
             RemoveSurveyCommand = new(RemoveSurvey);
@@ -118,15 +108,18 @@ namespace AdminClient {
                              .Select(questionTypesDTO => QuestionType.FromDTO(questionTypesDTO)).ToArray();
 
                         VisibilityProcess = Visibility.Hidden;
-                        VisibilityReady = Visibility.Visible;
-                        Text = "Готово";
+                        IsEnabledInterface = true;
                     }
                     else if (message == Message.DataSaveSuccess) {
                         buffer = await _server.ReadFromStream(4);
                         buffer = await _server.ReadFromStream(BitConverter.ToInt32(buffer, 0));
-                        MessageBox.Show(Encoding.UTF8.GetString(buffer));
-                        IsEnabledInterface = true;
                         VisibilityProcess = Visibility.Hidden;
+                        MessageBox.Show(
+                           Encoding.UTF8.GetString(buffer),
+                           "",
+                           MessageBoxButton.OK,
+                           MessageBoxImage.Information
+                           );
                         Text = "Идет процесс обновления списка опросов. Пожалуйста подождите.";
                         LoadingSurveyList();
                     }
@@ -190,10 +183,6 @@ namespace AdminClient {
             await SendMessageServer.SendRemoveSurveyMessage(_server, SelectedSurvey);
         }
 
-        private void Ready() {
-            VisibilityReady = Visibility.Hidden;
-            IsEnabledInterface = true;
-        }
 
         private Survey Test() {
             Survey survey = new Survey() {

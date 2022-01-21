@@ -46,7 +46,7 @@
 
 
             <StatusBar DockPanel.Dock="Bottom">
-                <TextBlock>
+                <TextBlock FontSize="14">
                     <Run Text="Всего опросов:"/>
                     <Run Text="{Binding Surveys.Count, Mode=OneWay}"/>
                 </TextBlock>
@@ -58,6 +58,7 @@
                       SelectionUnit="FullRow"
                       IsReadOnly="True"
                       RowHeaderWidth="0"
+                      FontSize="13"
                       SelectedItem="{Binding SelectedSurvey}"
                       CellStyle="{StaticResource DataGridCellStyle}"
                       ItemsSource="{Binding Surveys}">
@@ -118,26 +119,6 @@
                            Text="{Binding Text}"/>
             </Grid>
         </Border>
-        <Border HorizontalAlignment="Center" 
-                VerticalAlignment="Center" 
-                BorderBrush="Black" 
-                BorderThickness="0.5"
-                Visibility="{Binding VisibilityReady}">
-            <Grid Background="LightCyan" 
-                  Height="150" 
-                  Width="400">
-                <DockPanel Grid.Column="1">
-                    <Button DockPanel.Dock="Bottom"
-                            Content="Ok"
-                            Command="{Binding ReadyCommand}"/>
-                    <TextBlock FontSize="20"
-                           TextWrapping="WrapWithOverflow"
-                           HorizontalAlignment="Center"
-                           VerticalAlignment="Center"
-                           Text="{Binding Text}"/>
-                </DockPanel>
-
-            </Grid>
-        </Border>
+       
     </Grid>
 </Window>

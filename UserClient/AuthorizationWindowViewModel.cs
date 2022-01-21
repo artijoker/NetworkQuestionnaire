@@ -115,8 +115,12 @@ namespace UserClient {
                     if (message == Message.Authorization) {
                         buffer = await _server.ReadFromStream(4);
                         buffer = await _server.ReadFromStream(BitConverter.ToInt32(buffer, 0));
-                        
-                        MessageBox.Show(Encoding.UTF8.GetString(buffer));
+                        MessageBox.Show(
+                           Encoding.UTF8.GetString(buffer),
+                           "Ошибка",
+                           MessageBoxButton.OK,
+                           MessageBoxImage.Error
+                           );
                         IsEnabledInterface = true;
                         VisibilityAuthorizationProcess = Visibility.Hidden;
                     }

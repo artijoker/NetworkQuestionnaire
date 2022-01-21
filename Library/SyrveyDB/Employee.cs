@@ -11,7 +11,6 @@ namespace Library {
         public string Surname { get; set; }
         public string Patronymic { get; set; }
         public DateTime BirthDate { get; set; }
-        public string PhoneNumber { get; set; }
         public string Email { get; set; }
         
 
@@ -29,7 +28,6 @@ namespace Library {
                 Surname = Surname, 
                 Patronymic = Patronymic,
                 BirthDate = BirthDate,
-                PhoneNumber = PhoneNumber,
                 Email = Email 
             };
 
@@ -42,21 +40,7 @@ namespace Library {
                 Surname = employeeDTO.Surname, 
                 Patronymic = employeeDTO.Patronymic,
                 BirthDate = employeeDTO.BirthDate,
-                PhoneNumber = employeeDTO.PhoneNumber,
                 Email = employeeDTO.Email 
             };
-
-        public Employee Clone() =>
-           new Employee() {
-               Id = Id,
-               Login = Login,
-               Password = Password,
-               Name = Name,
-               Surname = Surname,
-               Patronymic = Patronymic,
-               BirthDate = BirthDate,
-               PhoneNumber = PhoneNumber,
-               Email = Email
-           };
     }
 }

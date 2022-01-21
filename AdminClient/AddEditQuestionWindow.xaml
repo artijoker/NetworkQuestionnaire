@@ -5,7 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AdminClient"
         mc:Ignorable="d"
-        Title="AddEditQuestionWindow" Height="450" Width="600">
+        Title="AddEditQuestionWindow" Height="450" Width="600"
+        FontSize="14">
     <Window.Resources>
         <Style TargetType="Button">
             <Setter Property="Background" Value="LightBlue"/>
@@ -25,6 +26,7 @@
             </Style.Resources>
 
         </Style>
+        <local:QuestionTypeToStringConverter x:Key="QuestionTypeToString"/>
     </Window.Resources>
     <Grid>
 
@@ -41,7 +43,8 @@
                            Margin="0 0 5 0"
                        Text="Текст вопроса:"/>
                 <TextBox Grid.Column="1"
-                         Text="{Binding TextQuestion}"/>
+                         Text="{Binding TextQuestion}"
+                         MaxLength="150"/>
             </Grid>
             <CheckBox DockPanel.Dock="Top"
                       Margin="5"
@@ -51,14 +54,17 @@
                        Margin="5"
                    Text="Тип вопроса"/>
             <ComboBox DockPanel.Dock="Top"
-                      Margin="5 0 0 0"
-                      Padding="150 5"
-                      HorizontalAlignment="Left"
-                      DisplayMemberPath="Type"
+                      Margin="5 0 280 0"
                       SelectedValuePath="Type"
                       SelectedValue="{Binding SelectedQuestionType.Type}"
                       ItemsSource="{Binding QuestionTypes}"
-                      SelectedItem="{Binding SelectedQuestionType}"/>
+                      SelectedItem="{Binding SelectedQuestionType}">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Converter={StaticResource QuestionTypeToString}}"/>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
 
 
             <Border DockPanel.Dock="Bottom" 
@@ -107,6 +113,7 @@
                 Margin="20 0"
                 BorderBrush="Black" 
                 BorderThickness="0.5"
+                Background="WhiteSmoke"
                 Visibility="{Binding VisibilityInputField}">
             <DockPanel>
                 <UniformGrid DockPanel.Dock="Bottom" 
@@ -129,6 +136,7 @@
                                Padding="5"/>
                     <TextBox Grid.Column="1"
                              Margin="5 0"
+                             MaxLength="150"
                              Text="{Binding TextAnswer}"/>
                 </Grid>
             </DockPanel>

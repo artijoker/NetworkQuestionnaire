@@ -10,42 +10,71 @@
         <Style x:Key="DataGridCellStyle">
             <Setter Property="DataGridCell.BorderThickness" Value="0"/>
         </Style>
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="LightBlue"/>
+            <Setter Property="Button.Padding" Value="5"/>
+            <Setter Property="Button.Margin" Value="5 7"/>
+            <Setter Property="TextBlock.FontSize" Value="18"/>
+            <Style.Resources>
+                <Style TargetType="Border">
+                    <Setter Property="CornerRadius" Value="5"/>
+                    <Style.Triggers>
+                        <Trigger  Property="IsMouseOver" Value="True">
+                            <Setter  Property="CornerRadius" Value="5"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+
+            </Style.Resources>
+
+        </Style>
         <local:BoolToStringConverter x:Key="BoolToString"/>
         <local:QuestionTypeToStringConverter x:Key="QuestionTypeToString"/>
         <local:QuestionToAmountAnswerConverter x:Key="QuestionToAmountAnswer"/>
     </Window.Resources>
     <DockPanel>
-        <Grid DockPanel.Dock="Top">
+        <Grid DockPanel.Dock="Top"
+              Margin="5 10">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="auto"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <TextBlock Grid.Column="0" 
-                       Text="Название опроса"/>
+                       Margin="0 0 5 0"
+                       Text="Название опроса:"/>
             <TextBox Grid.Column="1"
-                     Text="{Binding TextSurvey}"/>
+                     Text="{Binding TextSurvey}"
+                     MaxLength="100"/>
         </Grid>
-        
-        <UniformGrid DockPanel.Dock="Bottom"
-                     Columns="2">
-            <Button Content="Сохранить"
-                    Command="{Binding SaveCommand}"/>
-            <Button Content="Отмена"
-                    Command="{Binding CancelCommand}"/>
-        </UniformGrid>
-        <DockPanel Margin="15">
-            <TextBlock DockPanel.Dock="Top"
-                   Text="Список вопросов:"/>
+        <Border DockPanel.Dock="Bottom" 
+                    BorderBrush="Black" 
+                    BorderThickness="0 0.5 0 0">
             <UniformGrid DockPanel.Dock="Bottom"
-                         Columns="3">
-                <Button Content="Добавить"
-                        Command="{Binding AddQuestionCommand}"/>
-                <Button Content="Изменить"
-                        Command="{Binding EditQuestionCommand}"/>
-                <Button Content="Удалить"
-                        Command="{Binding RemoveQuestionCommand}"/>
+                     Columns="2">
+                <Button Content="Сохранить"
+                    Command="{Binding SaveCommand}"/>
+                <Button Content="Отмена"
+                    Command="{Binding CancelCommand}"/>
             </UniformGrid>
-            <DataGrid SelectionMode="Single"
+        </Border>
+        
+        <Border BorderBrush="Black" 
+                BorderThickness="0.5"
+                 Margin="15 10 15 18">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Top"
+                       Padding="3"
+                       Text="Список вопросов:"/>
+                <UniformGrid DockPanel.Dock="Bottom"
+                             Columns="3">
+                    <Button Content="Добавить"
+                        Command="{Binding AddQuestionCommand}"/>
+                    <Button Content="Изменить"
+                        Command="{Binding EditQuestionCommand}"/>
+                    <Button Content="Удалить"
+                        Command="{Binding RemoveQuestionCommand}"/>
+                </UniformGrid>
+                <DataGrid SelectionMode="Single"
                       AutoGenerateColumns="False"
                       ColumnWidth="*"
                       CanUserAddRows="False"
@@ -55,18 +84,20 @@
                       SelectedItem="{Binding SelectedQuestion}"
                       CellStyle="{StaticResource DataGridCellStyle}"
                       ItemsSource="{Binding Questions}">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="Вопрос"
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Вопрос"
                                         Binding="{Binding Text}"/>
-                    <DataGridTextColumn Header="Тип вопроса"
+                        <DataGridTextColumn Header="Тип вопроса"
                                         Binding="{Binding Type, 
                                         Converter={StaticResource QuestionTypeToString}}"/>
-                    <DataGridTextColumn Header="Обязательный"
+                        <DataGridTextColumn Header="Обязательный"
                                         Binding="{Binding IsRequired, 
                                         Converter={StaticResource BoolToString} }"/>
-                </DataGrid.Columns>
-            </DataGrid>
-        </DockPanel>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </DockPanel>
+        </Border>
+       
 
     </DockPanel>
 </Window>

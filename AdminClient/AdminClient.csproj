@@ -7,9 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="icon\add.png" />
-    <None Remove="icon\delete.png" />
-    <None Remove="icon\edit.png" />
     <None Remove="icon_employee.png" />
     <None Remove="icon_syrvey.png" />
     <None Remove="loading.png" />
@@ -20,15 +17,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="icon\add.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="icon\delete.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="icon\edit.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
     <Resource Include="icon_employee.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>

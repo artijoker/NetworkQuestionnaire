@@ -8,5 +8,7 @@ namespace Library {
     public class FreeAnswerDTO {
         public int Id { get; set; }
         public int QuestionId { get; set; }
+
+        public List<EmployeeFreeAnswerDTO> EmployeesFreeAnswers { get; set; } = new List<EmployeeFreeAnswerDTO>();
     }
 }

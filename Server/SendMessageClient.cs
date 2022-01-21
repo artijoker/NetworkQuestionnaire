@@ -71,20 +71,6 @@ namespace Server {
         }
 
 
-        //public static async Task SendSelectedSurveyMessage(TcpClient server, Survey survey) {
-        //    MemoryStream stream = new MemoryStream();
-        //    BinaryWriter writer = new BinaryWriter(stream);
-
-
-        //    writer.Write(Message.SelectedSurvey);
-        //    byte[] buffer = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(survey.ToDTO()));
-        //    writer.Write(buffer.Length);
-        //    writer.Write(buffer);
-        //    buffer = stream.ToArray();
-
-        //    await server.GetStream().WriteAsync(buffer, 0, buffer.Length);
-        //}
-
         public static async Task SendDataSaveSuccessMessage(TcpClient client, string message) {
             MemoryStream stream = new MemoryStream();
             BinaryWriter writer = new BinaryWriter(stream);
@@ -113,12 +99,12 @@ namespace Server {
             await client.GetStream().WriteAsync(buffer, 0, buffer.Length);
         }
 
-        public static async Task SendSurveyListMessage2(TcpClient client, Survey[] surveys) {
+        public static async Task SendAllAnswersEmployeeMessage(TcpClient client, Survey[] surveys) {
             MemoryStream stream = new MemoryStream();
             BinaryWriter writer = new BinaryWriter(stream);
 
 
-            writer.Write(Message.SurveyList);
+            writer.Write(Message.AllAnswersEmployee);
 
             byte[] buffer = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(surveys.Select(survey => survey.ToDTO()).ToArray()));
             writer.Write(buffer.Length);

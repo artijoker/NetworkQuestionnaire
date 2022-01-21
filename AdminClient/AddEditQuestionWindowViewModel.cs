@@ -116,6 +116,7 @@ namespace AdminClient {
 
         public AddEditQuestionWindowViewModel(QuestionType[] questionTypes) {
             QuestionTypes = questionTypes;
+            SelectedQuestionType = questionTypes[0];
             _questionId = 0;
             Answers = new();
             Question = new();
@@ -158,8 +159,24 @@ namespace AdminClient {
         }
 
         private void Save() {
-            if (Answers.Count == 0 && SelectedQuestionType.Type != "Free")
+            if (string.IsNullOrEmpty(TextQuestion)) {
+                MessageBox.Show(
+                    "Введите текст вопроса!",
+                    "Внимание",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
                 return;
+            }
+            if (Answers.Count == 0 && SelectedQuestionType.Type != "Free") {
+                MessageBox.Show(
+                    "Нельзя сохранять вопрос если в нем отсутствуют ответы и его тип 'Один ответ из списка' или 'Несколько ответов из списка!",
+                    "Внимание",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
+                return;
+            }
             SaveQuestion();
             IsDialogResult = true;
         }
@@ -261,10 +278,18 @@ namespace AdminClient {
             if (string.IsNullOrEmpty(TextAnswer))
                 return;
 
-            if (SelectedAnswer is not null)
-                Answers[Answers.IndexOf(SelectedAnswer)] = TextAnswer;
+            if (SelectedAnswer is not null) {
+                int idx = 0;
+                for (int i = 0; i < Answers.Count; i++) {
+                    if ((Object)Answers[i] == (Object)SelectedAnswer) {
+                        idx = i;
+                    }
+                }
+                //nt idx = Answers.IndexOf(SelectedAnswer);
+                Answers[idx] = TextAnswer.Trim();
+            }
             else
-                Answers.Add(TextAnswer);
+                Answers.Add(TextAnswer.Trim());
 
             TextAnswer = "";
 

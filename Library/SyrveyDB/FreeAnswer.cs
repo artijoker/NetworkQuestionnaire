@@ -1,6 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.Collections.Generic;
+using System.Linq;
 
 
 namespace Library {
@@ -13,10 +12,20 @@ namespace Library {
 
         public ICollection<EmployeeFreeAnswer> EmployeeFreeAnswers { get; set; } = new HashSet<EmployeeFreeAnswer>();
 
-        public FreeAnswerDTO ToDTO() => 
-            new FreeAnswerDTO() { Id = Id, QuestionId = QuestionId };
+        public FreeAnswerDTO ToDTO() =>
+            new FreeAnswerDTO() {
+                Id = Id,
+                QuestionId = QuestionId,
+                EmployeesFreeAnswers = EmployeeFreeAnswers.Select(e => e.ToDTO())
+                .ToList()
+            };
 
-        static public FreeAnswer FromDTO(FreeAnswerDTO answerDTO) => 
-            new FreeAnswer() { Id = answerDTO.Id, QuestionId = answerDTO.QuestionId };
+        static public FreeAnswer FromDTO(FreeAnswerDTO answerDTO) =>
+            new FreeAnswer() {
+                Id = answerDTO.Id,
+                QuestionId = answerDTO.QuestionId,
+                EmployeeFreeAnswers = answerDTO.EmployeesFreeAnswers.Select(e => EmployeeFreeAnswer.FromDTO(e))
+                .ToList()
+            };
     }
 }

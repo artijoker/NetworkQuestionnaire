@@ -16,11 +16,21 @@ namespace UserClient {
 
             writer.Write(Message.Authorization);
 
-            byte[] buffer = Encoding.UTF8.GetBytes(login);
+            //Шифрование Логина
+            byte[] key = Enumerable.Range(0, 32).Select(x => (byte)x).ToArray();
+            string base64 = Encryption.Encrypt(login, key);
+            writer.Write(key.Length);
+            writer.Write(key);
+            byte[] buffer = Encoding.UTF8.GetBytes(base64);
             writer.Write(buffer.Length);
             writer.Write(buffer);
 
-            buffer = Encoding.UTF8.GetBytes(password);
+            //Шифрование Пароля
+            key = Enumerable.Range(0, 32).Select(x => (byte)x).ToArray();
+            base64 = Encryption.Encrypt(password, key);
+            writer.Write(key.Length);
+            writer.Write(key);
+            buffer = Encoding.UTF8.GetBytes(base64);
             writer.Write(buffer.Length);
             writer.Write(buffer);
 

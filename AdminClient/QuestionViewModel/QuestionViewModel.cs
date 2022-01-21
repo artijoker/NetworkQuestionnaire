@@ -7,17 +7,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace UserClient.QuestionViewModel {
+namespace AdminClient.QuestionViewModel {
 
-    public abstract class QuestionViewModel : INotifyPropertyChanged {
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        public abstract void SaveAnswerEmployee(EmployeeSurveyAnswer employeeAnswer);
-        public abstract bool IsThereAnswer();
+    public abstract class QuestionViewModel {
         public abstract bool IsRequired { get; }
-        public void OnPropertyChanged(string property) =>
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(property));
 
         static public QuestionViewModel GetViewModel(Question question) {
 

@@ -4,14 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AdminClient {
+namespace AdminClient.QuestionViewModel {
     public class Answer {
-
-        public int Id { get; }
         public string Text { get; }
-        public Answer(int id, string text) {
-            Id = id;
+
+        public bool IsChecked { get; }
+
+        public Answer(string text, bool isChecked) {
             Text = text;
+            IsChecked = isChecked;
         }
     }
 }

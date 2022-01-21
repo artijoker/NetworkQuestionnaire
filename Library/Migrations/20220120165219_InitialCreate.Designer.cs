@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Library.Migrations
 {
     [DbContext(typeof(SurveysContext))]
-    [Migration("20220109160617_InitialCreate")]
+    [Migration("20220120165219_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -100,11 +100,6 @@ namespace Library.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<string>("PhoneNumber")
-                        .IsRequired()
-                        .HasMaxLength(12)
-                        .HasColumnType("nvarchar(12)");
-
                     b.Property<string>("Surname")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -118,9 +113,6 @@ namespace Library.Migrations
                     b.HasIndex("Login")
                         .IsUnique();
 
-                    b.HasIndex("PhoneNumber")
-                        .IsUnique();
-
                     b.ToTable("Employees");
 
                     b.HasData(
@@ -128,11 +120,10 @@ namespace Library.Migrations
                         {
                             Id = 1,
                             BirthDate = new DateTime(1989, 7, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Email = "ilya7261@yandex.ru",
+                            Email = "petr1989@yandex.ru",
                             Login = "login",
                             Name = "Петр",
                             Password = "password",
-                            PhoneNumber = "79997371314",
                             Surname = "Большаков"
                         },
                         new
@@ -144,7 +135,6 @@ namespace Library.Migrations
                             Name = "Семен",
                             Password = "8e71c26d7",
                             Patronymic = "Никитович",
-                            PhoneNumber = "79265391214",
                             Surname = "Аксенчук"
                         },
                         new
@@ -155,7 +145,6 @@ namespace Library.Migrations
                             Login = "milan1984",
                             Name = "Милан",
                             Password = "7822cdf91",
-                            PhoneNumber = "79338779078",
                             Surname = "Яимов"
                         },
                         new
@@ -167,7 +156,6 @@ namespace Library.Migrations
                             Name = "Тамара",
                             Password = "3f3af347b",
                             Patronymic = "Алексеевна",
-                            PhoneNumber = "79302385258",
                             Surname = "Куксилова"
                         });
                 });
@@ -1119,8 +1107,8 @@ namespace Library.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
 
                     b.HasKey("Id");
 

@@ -5,13 +5,54 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AdminClient"
         mc:Ignorable="d"
-        Title="EmployeeAndSurveysWindow" Height="450" Width="800">
+        Title="EmployeeAndSurveysWindow" 
+        Height="450" 
+        Width="450"
+        FontSize="14">
+    <Window.Resources>
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="LightBlue"/>
+            <Setter Property="Button.Padding" Value="5"/>
+            <Setter Property="Button.Margin" Value="2 5"/>
+            <Setter Property="TextBlock.FontSize" Value="15"/>
+            <Style.Resources>
+                <Style TargetType="Border">
+                    <Setter Property="CornerRadius" Value="5"/>
+                    <Style.Triggers>
+                        <Trigger  Property="IsMouseOver" Value="True">
+                            <Setter  Property="CornerRadius" Value="5"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+
+            </Style.Resources>
+
+        </Style>
+    </Window.Resources>
+
     <DockPanel>
-        <Button DockPanel.Dock="Bottom" 
-                Content="Показать ответы"/>
-        <ListBox>
-            
+        <UniformGrid DockPanel.Dock="Bottom" 
+                     Columns="2">
+            <Button DockPanel.Dock="Bottom" 
+                    Content="Показать"
+                    Command="{Binding ShowCommand}"/>
+            <Button DockPanel.Dock="Bottom" 
+                    Content="Назад"
+                    Command="{Binding BackCommand}"/>
+        </UniformGrid>
+        <TextBlock DockPanel.Dock="Top"
+                   Margin="5"
+                   Text="Список пройденных опросов:"/>
+        <ListBox ItemsSource ="{Binding Surveys}"
+                 SelectedItem="{Binding SelectedSurvey}">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding Name}"/>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
         </ListBox>
 
     </DockPanel>
+
+
 </Window>

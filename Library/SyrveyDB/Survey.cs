@@ -20,13 +20,14 @@ namespace Library {
                 Questions = Questions.Select(question => question.ToDTO()).ToList()
             };
 
-        static public Survey FromDTO(SurveyDTO surveyDTO) =>
-            new Survey() {
+        static public Survey FromDTO(SurveyDTO surveyDTO) {
+            return new Survey() {
                 Id = surveyDTO.Id,
                 Name = surveyDTO.Name,
 
                 Questions = surveyDTO.Questions.Select(question => Question.FromDTO(question)).ToHashSet()
             };
 
+        }
     }
 }

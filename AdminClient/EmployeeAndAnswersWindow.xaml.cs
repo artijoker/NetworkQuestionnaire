@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Library;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,9 +18,14 @@ namespace AdminClient {
     /// Логика взаимодействия для EmployeeAndAnswersWindow.xaml
     /// </summary>
     public partial class EmployeeAndAnswersWindow : Window {
-        public EmployeeAndAnswersWindow() {
+        public EmployeeAndAnswersWindow(Survey survey) {
             InitializeComponent();
-            
+            EmployeeAndAnswersWindowViewModel viewModel = new(survey);
+            DataContext = viewModel;
+            viewModel.PropertyChanged += (sender, e) => {
+                if (e.PropertyName == "IsReady")
+                    DialogResult = true;
+            };
         }
     }
 }

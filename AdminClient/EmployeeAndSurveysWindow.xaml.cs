@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Library;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,8 +18,17 @@ namespace AdminClient {
     /// Логика взаимодействия для EmployeeAndSurveysWindow.xaml
     /// </summary>
     public partial class EmployeeAndSurveysWindow : Window {
-        public EmployeeAndSurveysWindow() {
+        public EmployeeAndSurveysWindow(Survey[] surveys) {
             InitializeComponent();
+            EmployeeAndSurveysWindowViewModel viewModel = new EmployeeAndSurveysWindowViewModel(surveys);
+            DataContext = viewModel;
+            viewModel.PropertyChanged += (sender, e) => {
+                if (e.PropertyName == "IsDialogResult")
+                    if (viewModel.IsDialogResult)
+                        DialogResult = true;
+                    else
+                        DialogResult = false;
+            };
         }
     }
 }
