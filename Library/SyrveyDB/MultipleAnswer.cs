@@ -1,6 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text.Json.Serialization;
+﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace Library {
     public partial class MultipleAnswer {
@@ -14,9 +13,19 @@ namespace Library {
         public ICollection<Employee> Employees { get; set; } = new HashSet<Employee>();
 
         public MultipleAnswerDTO ToDTO() =>
-            new MultipleAnswerDTO() { Id = Id, QuestionId = QuestionId, Text = Text };
+            new MultipleAnswerDTO() { 
+                Id = Id, 
+                QuestionId = QuestionId, 
+                Text = Text,
+                Employees = Employees.Select(employee => employee.ToDTO()).ToList()
+            };
 
         public static MultipleAnswer FromDTO(MultipleAnswerDTO answerDTO) =>
-            new MultipleAnswer() { Id = answerDTO.Id, QuestionId = answerDTO.QuestionId, Text = answerDTO.Text };
+            new MultipleAnswer() { 
+                Id = answerDTO.Id, 
+                QuestionId = answerDTO.QuestionId, 
+                Text = answerDTO.Text,
+                Employees = answerDTO.Employees.Select(employee => Employee.FromDTO(employee)).ToList()
+            };
     }
 }

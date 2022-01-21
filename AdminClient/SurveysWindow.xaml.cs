@@ -22,5 +22,6 @@ namespace AdminClient {
             InitializeComponent();
             DataContext = new SurveysWindowViewModel(server);
         }
+
     }
 }

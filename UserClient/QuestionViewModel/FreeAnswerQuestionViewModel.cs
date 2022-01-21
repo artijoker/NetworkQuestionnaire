@@ -28,12 +28,10 @@ namespace UserClient.QuestionViewModel {
             IsRequired = question.IsRequired;
             Answer = question.FreeAnswers.Single();
         }
-        public override void SaveAnswerEmployee(EmployeeSurveyAnswerDTO employeeAnswer) {
-            if (IsThereAnswer()) 
-                employeeAnswer.FreeAnswers.Add(new TextFreeAnswerDTO() {
-                    FreeAnswer = Answer.ToDTO(),
-                    Text = AnswerText
-                });
+        public override void SaveAnswerEmployee(EmployeeSurveyAnswer employeeAnswer) {
+            var answer = (Answer.Id, AnswerText);
+            if (IsThereAnswer())
+                employeeAnswer.FreeAnswersIds.Add(answer);
         }
 
         public override bool IsThereAnswer() => string.IsNullOrEmpty(AnswerText) ? false : true;

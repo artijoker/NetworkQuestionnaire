@@ -16,11 +16,21 @@ namespace UserClient {
 
             writer.Write(Message.Authorization);
 
-            byte[] buffer = Encoding.UTF8.GetBytes(login);
+            //Шифрование Логина
+            byte[] key = Enumerable.Range(0, 32).Select(x => (byte)x).ToArray();
+            string base64 = Encryption.Encrypt(login, key);
+            writer.Write(key.Length);
+            writer.Write(key);
+            byte[] buffer = Encoding.UTF8.GetBytes(base64);
             writer.Write(buffer.Length);
             writer.Write(buffer);
 
-            buffer = Encoding.UTF8.GetBytes(password);
+            //Шифрование Пароля
+            key = Enumerable.Range(0, 32).Select(x => (byte)x).ToArray();
+            base64 = Encryption.Encrypt(password, key);
+            writer.Write(key.Length);
+            writer.Write(key);
+            buffer = Encoding.UTF8.GetBytes(base64);
             writer.Write(buffer.Length);
             writer.Write(buffer);
 
@@ -40,23 +50,13 @@ namespace UserClient {
             await server.GetStream().WriteAsync(buffer, 0, buffer.Length);
         }
 
-        //public static async Task SendSelectedSurveyMessage(TcpClient server, Survey survey) {
-        //    MemoryStream stream = new MemoryStream();
-        //    BinaryWriter writer = new BinaryWriter(stream);
-
-        //    writer.Write(Message.SelectedSurvey);
-        //    writer.Write(survey.Id);
-        //    byte[] buffer = stream.ToArray();
-
-        //    await server.GetStream().WriteAsync(buffer, 0, buffer.Length);
-        //}
-
-        public static async Task SendEmployeeAnswerMessage(TcpClient server, EmployeeSurveyAnswerDTO employeeAnswer) {
+        public static async Task SendEmployeeAnswerMessage(TcpClient server, EmployeeSurveyAnswer employeeAnswer) {
             MemoryStream stream = new MemoryStream();
             BinaryWriter writer = new BinaryWriter(stream);
 
             writer.Write(Message.EmployeeAnswers);
-            byte[] buffer = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(employeeAnswer));
+            string jsonString = JsonSerializer.Serialize(employeeAnswer, new() { IncludeFields = true });
+            byte[] buffer = Encoding.UTF8.GetBytes(jsonString);
             writer.Write(buffer.Length);
             writer.Write(buffer);
             buffer = stream.ToArray();

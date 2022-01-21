@@ -5,32 +5,77 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AdminClient"
         mc:Ignorable="d"
-        Title="SurveysWindow" Height="450" Width="800">
+        Title="SurveysWindow" Height="450" Width="800"
+        FontSize="12">
+    <Window.Resources>
+        <Style x:Key="DataGridCellStyle">
+            <Setter Property="DataGridCell.BorderThickness" Value="0"/>
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="LightBlue"/>
+            <Setter Property="Button.Padding" Value="5"/>
+            <Setter Property="Button.Margin" Value="5 7"/>
+            <Setter Property="TextBlock.FontSize" Value="18"/>
+            <Style.Resources>
+                <Style TargetType="Border">
+                    <Setter Property="CornerRadius" Value="5"/>
+                    <Style.Triggers>
+                        <Trigger  Property="IsMouseOver" Value="True">
+                            <Setter  Property="CornerRadius" Value="5"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
 
+            </Style.Resources>
+
+        </Style>
+    </Window.Resources>
     <Grid>
         <DockPanel>
 
             <UniformGrid DockPanel.Dock="Top"  
                          Columns="3">
-                <Button Content="Добавить"/>
-                <Button Content="Редактировать"/>
-                <Button Content="Удалить"/>
+                <Button Content="Добавить"
+                        Command="{Binding AddSurveyCommand}"/>
+                <Button Content="Редактировать"
+                        Command="{Binding EditSurveyCommand}"/>
+                <Button Content="Удалить"
+                        Command="{Binding RemoveSurveyCommand}"/>
             </UniformGrid>
 
 
 
             <StatusBar DockPanel.Dock="Bottom">
-                <TextBlock Text="Всего опросов:"/>
+                <TextBlock FontSize="14">
+                    <Run Text="Всего опросов:"/>
+                    <Run Text="{Binding Surveys.Count, Mode=OneWay}"/>
+                </TextBlock>
             </StatusBar>
-            <ListBox>
-
-            </ListBox>
+            <DataGrid SelectionMode="Single"
+                      AutoGenerateColumns="False"
+                      ColumnWidth="*"
+                      CanUserAddRows="False"
+                      SelectionUnit="FullRow"
+                      IsReadOnly="True"
+                      RowHeaderWidth="0"
+                      FontSize="13"
+                      SelectedItem="{Binding SelectedSurvey}"
+                      CellStyle="{StaticResource DataGridCellStyle}"
+                      ItemsSource="{Binding Surveys}">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Название опроса"
+                                        Binding="{Binding Name}"/>
+                    <DataGridTextColumn Header="Количество вопросов"
+                                        Binding="{Binding Questions.Count, Mode=OneWay}"/>
+                </DataGrid.Columns>
+            </DataGrid>
 
         </DockPanel>
         <Border HorizontalAlignment="Center" 
                 VerticalAlignment="Center" 
                 BorderBrush="Black" 
-                BorderThickness="0.5">
+                BorderThickness="0.5"
+                Visibility="{Binding VisibilityProcess}">
             <Grid Background="LightCyan" 
                   Height="130" 
                   Width="511">
@@ -74,5 +119,6 @@
                            Text="{Binding Text}"/>
             </Grid>
         </Border>
+       
     </Grid>
 </Window>

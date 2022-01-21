@@ -19,5 +19,7 @@ namespace Library {
         public const byte AddNewSurvey = 11;
         public const byte EditSurvey = 12;
         public const byte RemoveSurvey = 13;
+        public const byte AllSurveyAndQuestionTypes = 14;
+        public const byte AllAnswersEmployee = 15;
     }
 }

@@ -15,16 +15,16 @@ namespace UserClient.QuestionViewModel {
 
         public override bool IsRequired { get; }
 
-    public MultipleAnswerQuestionViewModel(Question question) {
+        public MultipleAnswerQuestionViewModel(Question question) {
             QuestionText = question.Text;
             IsRequired = question.IsRequired;
             Answers = new ObservableCollection<CheckBoxViewModel>(
                 question.MultipleAnswers.Select(answer => new CheckBoxViewModel(answer)));
         }
-        public override void SaveAnswerEmployee(EmployeeSurveyAnswerDTO employeeAnswer) {
-            if (IsThereAnswer()) 
-                employeeAnswer.MultipleAnswers.AddRange(Answers.Where(answer => answer.IsChecked)
-               .Select(answer => answer.Answer.ToDTO()));
+        public override void SaveAnswerEmployee(EmployeeSurveyAnswer employeeAnswer) {
+            if (IsThereAnswer())
+                employeeAnswer.MultipleAnswersIds.AddRange(Answers.Where(answer => answer.IsChecked)
+               .Select(answer => answer.Answer.Id));
         }
 
         public override bool IsThereAnswer() => Answers.Any(answer => answer.IsChecked == true);

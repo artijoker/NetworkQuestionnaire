@@ -115,13 +115,6 @@
                                 </StackPanel>
                                 <StackPanel>
                                     <TextBlock FontSize="14"
-                                               Text="Номер телефона"/>
-                                    <TextBlock Padding="0 0 0 3"
-                                               Text="{Binding Employee.PhoneNumber, 
-                                        Converter={StaticResource PhoneNumberConverter}}"/>
-                                </StackPanel>
-                                <StackPanel>
-                                    <TextBlock FontSize="14"
                                                Text="Email"/>
                                     <TextBlock Text="{Binding Employee.Email}"/>
                                 </StackPanel>
@@ -179,6 +172,7 @@
                            Text="{Binding Text}"/>
             </Grid>
         </Border>
+        
     </Grid>
     
 </Window>

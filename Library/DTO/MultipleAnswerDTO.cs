@@ -9,5 +9,6 @@ namespace Library {
         public int Id { get; set; }
         public string Text { get; set; }
         public int QuestionId { get; set; }
+        public List<EmployeeDTO> Employees { get; set; } = new List<EmployeeDTO>();
     }
 }

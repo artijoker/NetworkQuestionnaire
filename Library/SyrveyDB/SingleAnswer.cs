@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace Library {
     public partial class SingleAnswer {
@@ -13,10 +13,20 @@ namespace Library {
         public ICollection<Employee> Employees { get; set; } = new HashSet<Employee>();
 
         public SingleAnswerDTO ToDTO() =>
-           new SingleAnswerDTO() { Id = Id, QuestionId = QuestionId, Text = Text };
+           new SingleAnswerDTO() { 
+               Id = Id, 
+               QuestionId = QuestionId, 
+               Text = Text,
+               Employees = Employees.Select(employee => employee.ToDTO()).ToList()
+           };
 
         public static SingleAnswer FromDTO(SingleAnswerDTO answerDTO) =>
-            new SingleAnswer() { Id = answerDTO.Id, QuestionId = answerDTO.QuestionId, Text = answerDTO.Text };
+            new SingleAnswer() { 
+                Id = answerDTO.Id, 
+                QuestionId = answerDTO.QuestionId, 
+                Text = answerDTO.Text,
+                Employees = answerDTO.Employees.Select(employee => Employee.FromDTO(employee)).ToList()
+            };
 
     }
 }

@@ -18,26 +18,44 @@
         <Style x:Key="DataGridCellStyle">
             <Setter Property="DataGridCell.BorderThickness" Value="0"/>
         </Style>
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="LightBlue"/>
+            <Setter Property="Button.Padding" Value="5"/>
+            <Setter Property="Button.Margin" Value="2 5"/>
+            <Setter Property="TextBlock.FontSize" Value="15"/>
+            <Style.Resources>
+                <Style TargetType="Border">
+                    <Setter Property="CornerRadius" Value="5"/>
+                    <Style.Triggers>
+                        <Trigger  Property="IsMouseOver" Value="True">
+                            <Setter  Property="CornerRadius" Value="5"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+
+            </Style.Resources>
+
+        </Style>
         <lib:DateConverter x:Key="DateConverter"/>
-        <lib:PhoneNumberConverter x:Key="PhoneNumberConverter"/>
     </Window.Resources>
     <Grid>
         <DockPanel>
 
             <UniformGrid DockPanel.Dock="Top"  
-                         Columns="4" IsEnabled="{Binding IsEnabledInterface}">
+                         Columns="4" 
+                         IsEnabled="{Binding IsEnabledInterface}">
                 <Button Content="Добавить"
                         Command="{Binding AddEmployeeCommand}"/>
                 <Button Content="Редактировать"
                         Command="{Binding EditEmployeeCommand}"/>
                 <Button Content="Удалить"
                         Command="{Binding RemoveEmployeeCommand}"/>
-                <Button Content="Посмотреть пройденные опросы"/>
+                <Button Content="Пройденные опросы"
+                        Command="{Binding ShowCompletedSurveysCommand}"/>
             </UniformGrid>
 
-
-
-            <StatusBar DockPanel.Dock="Bottom">
+            <StatusBar DockPanel.Dock="Bottom"
+                       FontSize="14">
                 <TextBlock>
                     <Run Text="Всего сотрудников:"/>
                     <Run Text="{Binding Employees.Count, Mode=OneWay}"/>
@@ -50,6 +68,7 @@
                       SelectionUnit="FullRow"
                       IsReadOnly="True"
                       RowHeaderWidth="0"
+                      FontSize="13"
                       SelectedItem="{Binding SelectedEmployee}"
                       CellStyle="{StaticResource DataGridCellStyle}"
                       ItemsSource="{Binding Employees}">
@@ -63,9 +82,7 @@
                     <DataGridTextColumn Header="Дата рождения"
                                         Binding="{Binding BirthDate, 
                         Converter={StaticResource DateConverter}}"/>
-                    <DataGridTextColumn Header="Номер телефона"
-                                        Binding="{Binding PhoneNumber, 
-                        Converter={StaticResource PhoneNumberConverter}}"/>
+                    
                     <DataGridTextColumn Header="Email"
                                         Binding="{Binding Email}"/>
 
@@ -120,5 +137,7 @@
                            Text="{Binding Text}"/>
             </Grid>
         </Border>
+        
+        
     </Grid>
 </Window>

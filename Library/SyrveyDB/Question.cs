@@ -11,9 +11,9 @@ namespace Library {
         public int QuestionTypeId { get; set; }
         public int SurveyId { get; set; }
         public bool IsRequired { get; set; }
-
-        public QuestionType Type { get; set; }
-        public Survey Survey { get; set; }
+        #nullable enable
+        public QuestionType? Type { get; set; }
+        public Survey? Survey { get; set; }
 
         public ICollection<FreeAnswer> FreeAnswers { get; set; } = new HashSet<FreeAnswer>();
         public ICollection<MultipleAnswer> MultipleAnswers { get; set; } = new HashSet<MultipleAnswer>();
@@ -26,7 +26,7 @@ namespace Library {
                 QuestionTypeId = QuestionTypeId,
                 SurveyId = SurveyId,
                 IsRequired = IsRequired,
-                Type = Type.ToDTO(),
+                Type = Type?.ToDTO(),
 
                 FreeAnswers = FreeAnswers.Select(answer => answer.ToDTO()).ToList(),
                 MultipleAnswers = MultipleAnswers.Select(answer => answer.ToDTO()).ToList(),

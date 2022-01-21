@@ -188,7 +188,7 @@
                             <TextBox Text="{Binding AnswerText}"
                                      TextWrapping="Wrap"
                                      AcceptsReturn="True"
-                                     MaxLength="100"
+                                     MaxLength="150"
                                      VerticalScrollBarVisibility="Auto"
                                      Margin="0 0 80 0"
                                      Height="70"/>

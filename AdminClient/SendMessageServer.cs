@@ -20,6 +20,16 @@ namespace AdminClient {
             await server.GetStream().WriteAsync(buffer, 0, buffer.Length);
         }
 
+        public static async Task SendSurveyListMessage(TcpClient server) {
+            MemoryStream stream = new MemoryStream();
+            BinaryWriter writer = new BinaryWriter(stream);
+
+            writer.Write(Message.AllSurveyAndQuestionTypes);
+            byte[] buffer = stream.ToArray();
+
+            await server.GetStream().WriteAsync(buffer, 0, buffer.Length);
+        }
+
         public static async Task SendAddNewEmployeeMessage(TcpClient server, Employee employee) {
             MemoryStream stream = new MemoryStream();
             BinaryWriter writer = new BinaryWriter(stream);
@@ -81,7 +91,8 @@ namespace AdminClient {
             BinaryWriter writer = new BinaryWriter(stream);
 
             writer.Write(Message.EditSurvey);
-
+            //string json = File.ReadAllText("Test01.json");
+            //byte[] buffer = Encoding.UTF8.GetBytes(json);
             byte[] buffer = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(survey.ToDTO()));
             writer.Write(buffer.Length);
             writer.Write(buffer);
@@ -95,11 +106,19 @@ namespace AdminClient {
             BinaryWriter writer = new BinaryWriter(stream);
 
             writer.Write(Message.RemoveSurvey);
+            writer.Write(survey.Id);
+            byte[] buffer = stream.ToArray();
 
-            byte[] buffer = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(survey.ToDTO()));
-            writer.Write(buffer.Length);
-            writer.Write(buffer);
-            buffer = stream.ToArray();
+            await server.GetStream().WriteAsync(buffer, 0, buffer.Length);
+        }
+
+        public static async Task SendAllAnswersEmployeeMessage(TcpClient server, Employee employee) {
+            MemoryStream stream = new MemoryStream();
+            BinaryWriter writer = new BinaryWriter(stream);
+
+            writer.Write(Message.AllAnswersEmployee);
+            writer.Write(employee.Id);
+            byte[] buffer = stream.ToArray();
 
             await server.GetStream().WriteAsync(buffer, 0, buffer.Length);
         }

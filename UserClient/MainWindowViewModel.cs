@@ -51,6 +51,7 @@ namespace UserClient {
             }
         }
 
+
         public Survey SelectedSurvay {
             get => _selectedSurvay;
             set {
@@ -90,52 +91,44 @@ namespace UserClient {
                         buffer = await _server.ReadFromStream(4);
                         buffer = await _server.ReadFromStream(BitConverter.ToInt32(buffer, 0));
 
-                        var surveys = JsonSerializer.Deserialize<SurveyDTO[]>(Encoding.UTF8.GetString(buffer))
-                            .Select(surveyDTO => Survey.FromDTO(surveyDTO));
-
-                        Surveys.Clear();
-                        foreach (var survey in surveys) 
-                            Surveys.Add(survey);
-                        IsEnabledInterface = true;
+                        ICollection<Survey> surveys = JsonSerializer.Deserialize<SurveyDTO[]>(Encoding.UTF8.GetString(buffer))
+                            .Select(surveyDTO => Survey.FromDTO(surveyDTO)).ToArray();
                         VisibilityProcess = Visibility.Hidden;
+                        if (surveys.Count == 0) {
+                            MessageBox.Show(
+                           "Для вас нет новых опросов!",
+                           "Загрузка завершена",
+                           MessageBoxButton.OK,
+                           MessageBoxImage.Information
+                           );
+                        }
+                        else {
+                            Surveys.Clear();
+                            foreach (var survey in surveys)
+                                Surveys.Add(survey);
+                            MessageBox.Show(
+                           "Готово!",
+                           "Загрузка завершена",
+                           MessageBoxButton.OK,
+                           MessageBoxImage.Information
+                           );
+                        }
+                        IsEnabledInterface = true;
                     }
-                    //else if (message == Message.SelectedSurvey) {
-                    //    buffer = await _server.ReadFromStream(4);
-                    //    buffer = await _server.ReadFromStream(BitConverter.ToInt32(buffer, 0));
-
-                    //    Survey survey = Survey.FromDTO(JsonSerializer.Deserialize<SurveyDTO>(Encoding.UTF8.GetString(buffer)));
-
-                    //    IsEnabledInterface = true;
-                    //    VisibilityProcess = Visibility.Hidden;
-                    //    IsHide = true;
-
-                    //    SurveyWindow dialog = new SurveyWindow(survey);
-                    //    if (dialog.ShowDialog() == true) {
-                    //        EmployeeSurveyAnswerDTO employeeSurveyAnswer = dialog.ViewModel.EmployeeSurveyAnswer;
-                    //        employeeSurveyAnswer.Employee = Employee.ToDTO();
-                    //        employeeSurveyAnswer.Survey = SelectedSurvay.ToDTO();
-
-                    //        string jsonString = JsonSerializer.Serialize(employeeSurveyAnswer);
-                    //        File.WriteAllText("Answers.json", jsonString);
-
-                    //        IsHide = false;
-                    //        IsEnabledInterface = false;
-                    //        VisibilityProcess = Visibility.Visible;
-                    //        Text = "Идет процесс сохранения данных. Пожалуйста подождите.";
-
-                    //        await SendMessageServer.SendEmployeeAnswerMessage(_server, employeeSurveyAnswer);
-                    //    }
-                    //    IsHide = false;
-                        
-                        
-                    //}
+ 
                     else if (message == Message.DataSaveSuccess) {
                         buffer = await _server.ReadFromStream(4);
                         buffer = await _server.ReadFromStream(BitConverter.ToInt32(buffer, 0));
                         Surveys.Remove(SelectedSurvay);
-                        MessageBox.Show(Encoding.UTF8.GetString(buffer));
-                        IsEnabledInterface = true;
+
                         VisibilityProcess = Visibility.Hidden;
+                        MessageBox.Show(
+                           Encoding.UTF8.GetString(buffer),
+                           "",
+                           MessageBoxButton.OK,
+                           MessageBoxImage.Information
+                           );
+                        IsEnabledInterface = true;
                     }
 
                 }
@@ -152,7 +145,7 @@ namespace UserClient {
         private async void LoadingSurveyList() {
             IsEnabledInterface = false;
             VisibilityProcess = Visibility.Visible;
-            Text = "Идет процесс обновления списка опросов. Пожалуйста подождите.";
+            Text = "Идет процесс загрузки списка опросов. Пожалуйста подождите.";
             await SendMessageServer.SendSurveyListMessage(_server, Employee);
         }
 
@@ -161,13 +154,15 @@ namespace UserClient {
                 return;
             
             SurveyWindow dialog = new(SelectedSurvay);
+            // Survey survey = new() { Id = SelectedSurvay.Id, Name = SelectedSurvay.Name };
+            //employeeSurveyAnswer.Survey = survey.ToDTO();
             if (dialog.ShowDialog() == true) {
-                EmployeeSurveyAnswerDTO employeeSurveyAnswer = dialog.ViewModel.EmployeeSurveyAnswer;
-                employeeSurveyAnswer.Employee = Employee.ToDTO();
-                employeeSurveyAnswer.Survey = SelectedSurvay.ToDTO();
-
-                string jsonString = JsonSerializer.Serialize(employeeSurveyAnswer);
-                File.WriteAllText("Answers.json", jsonString);
+                EmployeeSurveyAnswer employeeSurveyAnswer = dialog.ViewModel.EmployeeSurveyAnswer;
+                employeeSurveyAnswer.EmployeeId = Employee.Id;
+                employeeSurveyAnswer.SurveyId = SelectedSurvay.Id;
+                //JsonSerializerOptions options = new() { IncludeFields = true };
+                //string jsonString = JsonSerializer.Serialize(employeeSurveyAnswer, options);
+                //File.WriteAllText("Answers.json", jsonString);
 
                 IsHide = false;
                 IsEnabledInterface = false;

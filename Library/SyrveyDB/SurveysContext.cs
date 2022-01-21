@@ -28,7 +28,6 @@ namespace Library {
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder) {
-
             modelBuilder.Entity<MultipleAnswer>(answer => {
                 answer.ToTable("MultipleAnswers");
 
@@ -106,7 +105,7 @@ namespace Library {
             modelBuilder.Entity<Survey>(survey => {
                 survey.Property(s => s.Name)
                     .IsRequired()
-                    .HasMaxLength(100);
+                    .HasMaxLength(150);
 
                 survey.HasMany(s => s.Questions)
                     .WithOne(q => q.Survey)
@@ -134,13 +133,6 @@ namespace Library {
 
                 employee.HasIndex(e => e.Email)
                     .IsUnique();
-
-                employee.Property(e => e.PhoneNumber)
-                    .IsRequired()
-                    .HasMaxLength(12);
-
-                employee.HasIndex(e => e.PhoneNumber)
-                   .IsUnique();
 
                 employee.Property(e => e.BirthDate)
                     .IsRequired();
@@ -580,8 +572,7 @@ namespace Library {
                         Surname = "Большаков",
                         Name = "Петр",
                         BirthDate = DateTime.Parse("01.07.1989"),
-                        PhoneNumber = "79997371314",
-                        Email = "ilya7261@yandex.ru",
+                        Email = "petr1989@yandex.ru",
                         Login = "login",
                         Password = "password"
                     },
@@ -591,7 +582,6 @@ namespace Library {
                         Name = "Семен",
                         Patronymic = "Никитович",
                         BirthDate = DateTime.Parse("22.04.1973"),
-                        PhoneNumber = "79265391214",
                         Email = "semen3401@hotmail.com",
                         Login = "semen3401",
                         Password = "8e71c26d7"
@@ -602,7 +592,6 @@ namespace Library {
                         Surname = "Яимов",
                         Name = "Милан",
                         BirthDate = DateTime.Parse("05.11.1984"),
-                        PhoneNumber = "79338779078",
                         Email = "milan1984@gmail.com",
                         Login = "milan1984",
                         Password = "7822cdf91"
@@ -613,13 +602,15 @@ namespace Library {
                         Name = "Тамара",
                         Patronymic = "Алексеевна",
                         BirthDate = DateTime.Parse("18.03.1989"),
-                        PhoneNumber = "79302385258",
                         Email = "tamara18031986@gmail.com",
                         Login = "tamara18031989",
                         Password = "3f3af347b"
                     },
                 });
         }
+
+
+
     }
 
 

@@ -24,8 +24,9 @@ namespace UserClient {
             ViewModel = new SurveyWindowViewModel(survey);
             DataContext = ViewModel;
             ViewModel.PropertyChanged += (sender, e) => {
-                if (e.PropertyName == "IsReady")
+                if (e.PropertyName == "IsDialogResult")
                     DialogResult = true;
+
             };
         }
     }

@@ -47,6 +47,7 @@ namespace AdminClient {
             }
         }
 
+
         public Employee SelectedEmployee {
             get => _selectedEmployee;
             set {
@@ -65,6 +66,7 @@ namespace AdminClient {
         public DelegateCommand AddEmployeeCommand { get; }
         public DelegateCommand EditEmployeeCommand { get; }
         public DelegateCommand RemoveEmployeeCommand { get; }
+        public DelegateCommand ShowCompletedSurveysCommand { get; }
 
         public EmployeesWindowViewModel(TcpClient server) {
             _server = server;
@@ -73,7 +75,8 @@ namespace AdminClient {
             AddEmployeeCommand = new(AddEmployee);
             EditEmployeeCommand = new(EditEmployee);
             RemoveEmployeeCommand = new(RemoveEmployee);
-            Text = "Идет процесс создания списка сотрудников. Пожалуйста подождите.";
+            ShowCompletedSurveysCommand = new(ShowCompletedSurveys);
+            Text = "Идет процесс загрузки списка сотрудников. Пожалуйста подождите.";
             LoadingEmployeeList();
             ListenToServer();
         }
@@ -88,23 +91,48 @@ namespace AdminClient {
                         buffer = await _server.ReadFromStream(4);
                         buffer = await _server.ReadFromStream(BitConverter.ToInt32(buffer, 0));
 
-                        var surveys = JsonSerializer.Deserialize<EmployeeDTO[]>(Encoding.UTF8.GetString(buffer))
+                        var employees = JsonSerializer.Deserialize<EmployeeDTO[]>(Encoding.UTF8.GetString(buffer))
                             .Select(employeeDTO => Employee.FromDTO(employeeDTO));
 
                         Employees.Clear();
-                        foreach (var survey in surveys)
-                            Employees.Add(survey);
-                        IsEnabledInterface = true;
+                        foreach (var employee in employees)
+                            Employees.Add(employee);
                         VisibilityProcess = Visibility.Hidden;
+                        IsEnabledInterface = true;
                     }
                     else if (message == Message.DataSaveSuccess) {
                         buffer = await _server.ReadFromStream(4);
                         buffer = await _server.ReadFromStream(BitConverter.ToInt32(buffer, 0));
-                        MessageBox.Show(Encoding.UTF8.GetString(buffer));
-                        IsEnabledInterface = true;
                         VisibilityProcess = Visibility.Hidden;
+                        MessageBox.Show(
+                           Encoding.UTF8.GetString(buffer),
+                           "",
+                           MessageBoxButton.OK,
+                           MessageBoxImage.Information
+                           );
                         Text = "Идет процесс обновления списка сотрудников. Пожалуйста подождите.";
                         LoadingEmployeeList();
+                    }
+                    else if (message == Message.AllAnswersEmployee) {
+                        buffer = await _server.ReadFromStream(4);
+                        buffer = await _server.ReadFromStream(BitConverter.ToInt32(buffer, 0));
+
+                        Survey[] surveys = JsonSerializer.Deserialize<SurveyDTO[]>(Encoding.UTF8.GetString(buffer))
+                            .Select(surveyDTO => Survey.FromDTO(surveyDTO)).ToArray();
+                        VisibilityProcess = Visibility.Hidden;
+                        if (surveys.Length == 0) {
+                            MessageBox.Show(
+                                "У сотридника нет пройденных опросов!",
+                                "Загрузка завершена",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Information
+                                );
+                        }
+                        else {
+                            EmployeeAndSurveysWindow dialog = new(surveys);
+                            dialog.ShowDialog();
+                        }
+                        IsEnabledInterface = true;
                     }
 
                 }
@@ -130,25 +158,27 @@ namespace AdminClient {
         }
 
         private async void AddEmployee() {
+
             AddEditEmployeeWindow dialog = new();
             if (dialog.ShowDialog() == true) {
                 IsEnabledInterface = false;
                 VisibilityProcess = Visibility.Visible;
                 Employee employee = dialog.ViewModel.Employee;
+                EmployeeDataVerification(employee);
                 Text = "Идет процесс добавления нового сотрудника. Пожалуйста подождите.";
                 await SendMessageServer.SendAddNewEmployeeMessage(_server, employee);
             }
         }
 
         private async void EditEmployee() {
-            if (SelectedEmployee is null) 
+            if (SelectedEmployee is null)
                 return;
-            
             AddEditEmployeeWindow dialog = new(SelectedEmployee);
             if (dialog.ShowDialog() == true) {
+                Employee employee = dialog.ViewModel.Employee;
+                EmployeeDataVerification(employee);
                 IsEnabledInterface = false;
                 VisibilityProcess = Visibility.Visible;
-                Employee employee = dialog.ViewModel.Employee;
                 Text = "Идет процесс изменения данных сотрудника. Пожалуйста подождите.";
                 await SendMessageServer.SendEditEmployeeMessage(_server, employee);
             }
@@ -163,5 +193,33 @@ namespace AdminClient {
             Text = "Идет процесс удаления сотрудника. Пожалуйста подождите.";
             await SendMessageServer.SendRemoveEmployeeMessage(_server, SelectedEmployee);
         }
+
+
+        private async void ShowCompletedSurveys() {
+            if (SelectedEmployee is null)
+                return;
+            IsEnabledInterface = false;
+            VisibilityProcess = Visibility.Visible;
+            Text = "Идет процесс загрузки пройденных опросов сотрудника. Пожалуйста подождите.";
+            await SendMessageServer.SendAllAnswersEmployeeMessage(_server, SelectedEmployee);
+        }
+
+        private void EmployeeDataVerification(Employee employee) {
+            Employee currentEmployee = employee;
+            while (true) {
+                if (Employees.Any(e => e.Email == currentEmployee.Email && e.Id != currentEmployee.Id))
+                    MessageBox.Show("Такой email уже есть в базе!");
+                else if (Employees.Any(e => e.Login == currentEmployee.Login && e.Id != currentEmployee.Id))
+                    MessageBox.Show("Такой логин уже есть в базе!");
+                else
+                    return;
+                AddEditEmployeeWindow dialog = new(currentEmployee);
+                if (dialog.ShowDialog() == true) {
+                    currentEmployee = dialog.ViewModel.Employee;
+                }
+
+            }
+        }
+
     }
 }

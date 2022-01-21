@@ -12,5 +12,19 @@ namespace Library {
 
         public FreeAnswer FreeAnswer { get; set; }
         public Employee Employee { get; set; }
+
+        public EmployeeFreeAnswerDTO ToDTO() =>
+           new EmployeeFreeAnswerDTO() { 
+               EmployeeId = EmployeeId,
+               FreeAnswerId = FreeAnswerId,
+               Text = Text
+           };
+
+        static public EmployeeFreeAnswer FromDTO(EmployeeFreeAnswerDTO employeeFreeAnswerDTO) =>
+            new EmployeeFreeAnswer() {
+                EmployeeId = employeeFreeAnswerDTO.EmployeeId,
+                FreeAnswerId = employeeFreeAnswerDTO.FreeAnswerId,
+                Text = employeeFreeAnswerDTO.Text
+            };
     }
 }
