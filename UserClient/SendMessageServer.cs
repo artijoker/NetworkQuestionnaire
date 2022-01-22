@@ -43,7 +43,7 @@ namespace UserClient {
             MemoryStream stream = new MemoryStream();
             BinaryWriter writer = new BinaryWriter(stream);
 
-            writer.Write(Message.SurveyList);
+            writer.Write(Message.ListSurveysNotСompletedEmployee);
             writer.Write(employee.Id);
             byte[] buffer = stream.ToArray();
 

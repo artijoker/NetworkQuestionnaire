@@ -4,16 +4,18 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AdminClient"
+        
         mc:Ignorable="d"
-        Title="MainWindow" Height="400" Width="450"
+        Title="" Height="400" Width="450"
         MinHeight="300"
-        MinWidth="190">
+        MinWidth="190"
+        Loaded="Window_Loaded">
     <UniformGrid Rows="2">
         <Button Command="{Binding ShowSurveysCommand}">
             <DockPanel >
                 <Image DockPanel.Dock="Right"
                        Margin="20"
-                       Source="icon_syrvey.png"/>
+                       Source="Image/icon_syrvey.png"/>
                 <TextBlock FontSize="30"
                            Padding="42"
                            VerticalAlignment="Center"
@@ -25,7 +27,7 @@
             <DockPanel>
                 <Image DockPanel.Dock="Left"
                        Margin="20"
-                       Source="icon_employee.png"/>
+                       Source="Image/icon_employee.png"/>
                 <TextBlock FontSize="30" 
                            Margin="15 0"
                            VerticalAlignment="Center"

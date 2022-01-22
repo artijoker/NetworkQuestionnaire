@@ -87,7 +87,7 @@ namespace AdminClient {
                     byte[] buffer = await _server.ReadFromStream(1);
                     byte message = buffer[0];
 
-                    if (message == Message.EmployeeList) {
+                    if (message == Message.EmployeesList) {
                         buffer = await _server.ReadFromStream(4);
                         buffer = await _server.ReadFromStream(BitConverter.ToInt32(buffer, 0));
 
@@ -113,7 +113,7 @@ namespace AdminClient {
                         Text = "Идет процесс обновления списка сотрудников. Пожалуйста подождите.";
                         LoadingEmployeeList();
                     }
-                    else if (message == Message.AllAnswersEmployee) {
+                    else if (message == Message.SurveysСompletedEmployee) {
                         buffer = await _server.ReadFromStream(4);
                         buffer = await _server.ReadFromStream(BitConverter.ToInt32(buffer, 0));
 
@@ -138,6 +138,8 @@ namespace AdminClient {
                 }
             }
             catch (Exception ex) {
+                IsEnabledInterface = true;
+                VisibilityProcess = Visibility.Hidden;
                 MessageBox.Show(ex.Message);
                 BreakConnection();
                 Application.Current.MainWindow.Close();
@@ -158,31 +160,79 @@ namespace AdminClient {
         }
 
         private async void AddEmployee() {
-
-            AddEditEmployeeWindow dialog = new();
-            if (dialog.ShowDialog() == true) {
-                IsEnabledInterface = false;
-                VisibilityProcess = Visibility.Visible;
-                Employee employee = dialog.ViewModel.Employee;
-                EmployeeDataVerification(employee);
-                Text = "Идет процесс добавления нового сотрудника. Пожалуйста подождите.";
-                await SendMessageServer.SendAddNewEmployeeMessage(_server, employee);
+            Employee employee;
+            while (true) {
+                AddEditEmployeeWindow dialog = new();
+                if (dialog.ShowDialog() == true) {
+                    employee = dialog.ViewModel.Employee;
+                    if (!IsEmailCorrect(employee)) {
+                        MessageBox.Show("Такой email уже есть в базе!",
+                            "Ошибка!",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Error
+                            );
+                        continue;
+                    }
+                    if (!IsLoginCorrect(employee)) {
+                        MessageBox.Show("Такой логин уже есть в базе!", 
+                            "Ошибка!",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Error
+                            );
+                        continue;
+                    }
+                    IsEnabledInterface = false;
+                    VisibilityProcess = Visibility.Visible;
+                    Text = "Идет процесс изменения данных сотрудника. Пожалуйста подождите.";
+                    await SendMessageServer.SendAddNewEmployeeMessage(_server, employee);
+                    return;
+                }
+                else
+                    return;
             }
         }
+
+
 
         private async void EditEmployee() {
             if (SelectedEmployee is null)
                 return;
-            AddEditEmployeeWindow dialog = new(SelectedEmployee);
-            if (dialog.ShowDialog() == true) {
-                Employee employee = dialog.ViewModel.Employee;
-                EmployeeDataVerification(employee);
-                IsEnabledInterface = false;
-                VisibilityProcess = Visibility.Visible;
-                Text = "Идет процесс изменения данных сотрудника. Пожалуйста подождите.";
-                await SendMessageServer.SendEditEmployeeMessage(_server, employee);
+            Employee employee = SelectedEmployee;
+            while (true) {
+                AddEditEmployeeWindow dialog = new(employee);
+               
+                if (dialog.ShowDialog() == true) {
+                    employee = dialog.ViewModel.Employee;
+                    if (!IsEmailCorrect(employee)) {
+                        MessageBox.Show(
+                            "Такой с таким email уже существует в базе!",
+                            "Ошибка!",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Error
+                            );
+                        continue;
+                    }
+                    if (!IsLoginCorrect(employee)) {
+                        MessageBox.Show(
+                            "Сотрудник с таким логином уже существует в базе!",
+                            "Ошибка!",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Error
+                            );
+                        continue;
+                    }
+                    IsEnabledInterface = false;
+                    VisibilityProcess = Visibility.Visible;
+                    Text = "Идет процесс изменения данных сотрудника. Пожалуйста подождите.";
+                    await SendMessageServer.SendEditEmployeeMessage(_server, employee);
+                    return;
+                }
+                else
+                    return;
             }
         }
+
+       
 
         private async void RemoveEmployee() {
             if (SelectedEmployee is null)
@@ -200,26 +250,15 @@ namespace AdminClient {
                 return;
             IsEnabledInterface = false;
             VisibilityProcess = Visibility.Visible;
-            Text = "Идет процесс загрузки пройденных опросов сотрудника. Пожалуйста подождите.";
+            Text = "Идет процесс загрузки всех опросов которые прошел сотрудник. Пожалуйста подождите.";
             await SendMessageServer.SendAllAnswersEmployeeMessage(_server, SelectedEmployee);
         }
 
-        private void EmployeeDataVerification(Employee employee) {
-            Employee currentEmployee = employee;
-            while (true) {
-                if (Employees.Any(e => e.Email == currentEmployee.Email && e.Id != currentEmployee.Id))
-                    MessageBox.Show("Такой email уже есть в базе!");
-                else if (Employees.Any(e => e.Login == currentEmployee.Login && e.Id != currentEmployee.Id))
-                    MessageBox.Show("Такой логин уже есть в базе!");
-                else
-                    return;
-                AddEditEmployeeWindow dialog = new(currentEmployee);
-                if (dialog.ShowDialog() == true) {
-                    currentEmployee = dialog.ViewModel.Employee;
-                }
+        private bool IsEmailCorrect(Employee employee) =>
+            !Employees.Any(e => e.Email == employee.Email && e.Id != employee.Id);
 
-            }
-        }
+        private bool IsLoginCorrect(Employee employee) =>
+            !Employees.Any(e => e.Login == employee.Login && e.Id != employee.Id);
 
     }
 }

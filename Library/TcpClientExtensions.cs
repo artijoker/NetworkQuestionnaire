@@ -12,12 +12,14 @@ namespace Library {
             byte[] buffer = new byte[length];
             int current = 0;
             while (current < length) {
-                int read = await client.GetStream().ReadAsync(buffer, current, length - current);
+                int read = await client.GetStream().ReadAsync(buffer.AsMemory(current, length - current));
+                if (read == 0)
+                    break;
                 current += read;
             }
             return buffer;
         }
 
     }
-    
+
 }

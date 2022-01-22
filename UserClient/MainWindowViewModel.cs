@@ -81,13 +81,14 @@ namespace UserClient {
             LoadingSurveyList();
             ListenToServer();
         }
+        
         private async void ListenToServer() {
             try {
                 while (true) {
                     byte[] buffer = await _server.ReadFromStream(1);
                     byte message = buffer[0];
 
-                    if (message == Message.SurveyList) {
+                    if (message == Message.ListSurveysNotСompletedEmployee) {
                         buffer = await _server.ReadFromStream(4);
                         buffer = await _server.ReadFromStream(BitConverter.ToInt32(buffer, 0));
 

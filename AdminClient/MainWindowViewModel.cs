@@ -6,12 +6,13 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace AdminClient {
     class MainWindowViewModel : INotifyPropertyChanged {
         private bool _isHide;
         private bool _isClose;
-        private readonly TcpClient _server;
+        private TcpClient _server;
         private string _ipAddress = "127.0.0.1";
         private int _port = 56537;
 
@@ -37,18 +38,33 @@ namespace AdminClient {
         public DelegateCommand ShowSurveysCommand { get; }
 
         public MainWindowViewModel() {
-            _server = new TcpClient(_ipAddress, _port);
+            
             ShowEmployeesCommand = new DelegateCommand(ShowEmployees);
             ShowSurveysCommand = new DelegateCommand(ShowSurveys);
+        }
+        public void WindowLoaded() {
+            try {
+                _server = new(_ipAddress, _port);
+            }
+            catch (SocketException ex) {
+
+                MessageBox.Show(
+                    ex.Message, 
+                    "Ошибка соединения", 
+                    MessageBoxButton.OK, 
+                    MessageBoxImage.Error
+                    );
+                IsClose = true;
+            }
         }
 
 
         private void ShowEmployees() {
+            
             EmployeesWindow dialog = new(_server);
             IsHide = true;
             dialog.ShowDialog();
             IsClose = true;
-            return;
         }
 
         private void ShowSurveys() {
@@ -56,7 +72,6 @@ namespace AdminClient {
             IsHide = true;
             dialog.ShowDialog();
             IsClose = true;
-            return;
         }
 
     }

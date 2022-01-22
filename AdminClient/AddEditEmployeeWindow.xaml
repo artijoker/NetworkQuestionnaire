@@ -55,34 +55,34 @@
                 <StackPanel>
                     <TextBlock Padding="0 2"
                            Text="Фамилия*"/>
-                    <TextBox Text="{Binding Surname}"/>
+                    <TextBox Text="{Binding Employee.Surname}"/>
                 </StackPanel>
                 <StackPanel>
                     <TextBlock Padding="0 2"
                            Text="Имя*"/>
-                    <TextBox Text="{Binding Name}"/>
+                    <TextBox Text="{Binding Employee.Name}"/>
                 </StackPanel>
                 <StackPanel>
                     <TextBlock Padding="0 2"
                            Text="Отчество"/>
-                    <TextBox Text="{Binding Patronymic}"/>
+                    <TextBox Text="{Binding Employee.Patronymic}"/>
                 </StackPanel>
                 <StackPanel>
                     <TextBlock Padding="0 2"
                            Text="Дата рождения*"/>
                     <DatePicker IsTodayHighlighted="True"
                             DisplayDateEnd="{x:Static sys:DateTime.Now}"
-                            SelectedDate="{Binding BirthDate}"/>
+                            SelectedDate="{Binding Employee.BirthDate}"/>
                 </StackPanel>
                 <StackPanel>
                     <TextBlock Padding="0 2"
                            Text="Email*"/>
-                    <TextBox Text="{Binding Email}"/>
+                    <TextBox Text="{Binding Employee.Email}"/>
                 </StackPanel>
                 <StackPanel>
                     <TextBlock Padding="0 2"
                            Text="Логин*"/>
-                    <TextBox Text="{Binding Login}"/>
+                    <TextBox Text="{Binding Employee.Login}"/>
                 </StackPanel>
                 <StackPanel>
                     <TextBlock Padding="0 2"
@@ -95,7 +95,7 @@
                             Content="Создать"
                             Padding="8 0"
                             Command="{Binding CreatePasswordCommand}"/>
-                        <TextBox Text="{Binding Password}"/>
+                        <TextBox Text="{Binding Employee.Password}"/>
                     </DockPanel>
                 </StackPanel>
             </UniformGrid>

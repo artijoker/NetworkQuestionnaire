@@ -20,8 +20,9 @@ using System.Windows.Shapes;
 namespace UserClient {
     public partial class MainWindow : Window {
         public MainWindow(TcpClient server, Employee employee) {
+            MainWindowViewModel ViewModel;
             InitializeComponent();
-            MainWindowViewModel ViewModel = new(server, employee);
+            ViewModel = new(server, employee);
             DataContext = ViewModel;
             ViewModel.PropertyChanged += (sender, e) => {
                 if (e.PropertyName == "IsHide") 

@@ -78,14 +78,7 @@
                                        Padding="5"
                                        Text="Данные сотрудника"
                                        FontSize="23"/>
-                            <Button DockPanel.Dock="Bottom"
-                                    Padding="8"
-                                    Margin="25 12"
-                                    FontSize="18"
-                                    Content="Изменить данные"
-                                    Visibility="Collapsed"
-                                    Command="{Binding ConfirmCommand}"
-                                    IsEnabled="false"/>
+      
                             <UniformGrid Rows ="6"  
                                          Margin="10 0">
                                 <StackPanel>
@@ -100,7 +93,7 @@
                                     <TextBlock Padding="0 0 0 3"
                                                Text="{Binding Employee.Surname}"/>
                                 </StackPanel>
-                                <StackPanel Visibility="{Binding VisibilityPatronymic}">
+                                <StackPanel>
                                     <TextBlock FontSize="14"
                                                Text="Отчество"/>
                                     <TextBlock Padding="0 0 0 3"

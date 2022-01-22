@@ -75,7 +75,7 @@ namespace AdminClient {
             AddSurveyCommand = new(AddSurvey);
             EditSurveyCommand = new(EditSurvey);
             RemoveSurveyCommand = new(RemoveSurvey);
-            Text = "Идет процесс создания списка опросов. Пожалуйста подождите.";
+            Text = "Идет процесс загрузки списка опросов. Пожалуйста подождите.";
             LoadingSurveyList();
             ListenToServer();
         }
@@ -88,7 +88,7 @@ namespace AdminClient {
                     byte[] buffer = await _server.ReadFromStream(1);
                     byte message = buffer[0];
 
-                    if (message == Message.AllSurveyAndQuestionTypes) {
+                    if (message == Message.AllSurveyFromDBAndQuestionTypes) {
                         buffer = await _server.ReadFromStream(4);
                         buffer = await _server.ReadFromStream(BitConverter.ToInt32(buffer, 0));
 
@@ -127,6 +127,8 @@ namespace AdminClient {
                 }
             }
             catch (Exception ex) {
+                IsEnabledInterface = true;
+                VisibilityProcess = Visibility.Hidden;
                 MessageBox.Show(ex.Message);
                 BreakConnection();
                 Application.Current.MainWindow.Close();
@@ -137,13 +139,14 @@ namespace AdminClient {
         private void BreakConnection() {
             if (_server.Client.Connected)
                 _server.Client.Shutdown(SocketShutdown.Both);
+
             _server.Client.Close();
         }
 
         private async void LoadingSurveyList() {
             IsEnabledInterface = false;
             VisibilityProcess = Visibility.Visible;
-            await SendMessageServer.SendSurveyListMessage(_server);
+            await SendMessageServer.SendAllSurveyAndQuestionTypesMessage(_server);
         }
 
         private async void AddSurvey() {
@@ -181,61 +184,6 @@ namespace AdminClient {
             VisibilityProcess = Visibility.Visible;
             Text = "Идет процесс удаления выбраного опроса. Пожалуйста подождите.";
             await SendMessageServer.SendRemoveSurveyMessage(_server, SelectedSurvey);
-        }
-
-
-        private Survey Test() {
-            Survey survey = new Survey() {
-                Name = "TEST"
-            };
-            survey.Questions.Add(
-                new Question() {
-                    QuestionTypeId = 1,
-                    IsRequired = true,
-                    Text = "WHAT1?",
-                    SingleAnswers = new SingleAnswer[] {
-                        new SingleAnswer() {
-                            Text = "01"
-                        },
-                        new SingleAnswer() {
-                            Text = "02"
-                        }
-                    }
-                }
-            );
-            survey.Questions.Add(
-                new Question() {
-                    QuestionTypeId = 1,
-                    IsRequired = true,
-                    Text = "WHAT2?",
-                    SingleAnswers = new SingleAnswer[] {
-                        new SingleAnswer() {
-                            Text = "03"
-                        },
-                        new SingleAnswer() {
-                            Text = "04"
-                        }
-                    }
-
-                }
-            );
-            survey.Questions.Add(
-                new Question() {
-                    QuestionTypeId = 1,
-                    IsRequired = true,
-                    Text = "WHAT3?",
-                    SingleAnswers = new SingleAnswer[] {
-                        new SingleAnswer() {
-                            Text = "05"
-                        },
-                        new SingleAnswer() {
-                            Text = "06"
-                        }
-                    }
-                }
-            );
-            return survey;
-
         }
     }
 

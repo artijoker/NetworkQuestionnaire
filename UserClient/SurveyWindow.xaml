@@ -51,7 +51,20 @@
         <Style TargetType="TextBlock">
             <Setter Property="TextBlock.TextWrapping" Value="WrapWithOverflow"/>
         </Style>
-
+        <Style x:Key="IsRequired" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="25"/>
+            <Setter Property="Foreground" Value="Red"/>
+            <Setter Property="Margin" Value="3 0 0 0"/>
+        </Style>
+        <Style x:Key="QuestionBorderStyle" TargetType="Border">
+            <Setter Property="BorderBrush" Value="Black"/>
+            <Setter Property="BorderThickness" Value="0 0.5"/>
+            <Setter Property="Background" Value="WhiteSmoke"/>
+        </Style>
+        <Style TargetType="ListBox">
+            <Setter Property="BorderBrush" Value="Black"/>
+            <Setter Property="BorderThickness" Value="0 0.5"/>
+        </Style>
         <local:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
     </Window.Resources>
 
@@ -73,7 +86,6 @@
                     BorderBrush="black" 
                     BorderThickness="0 0.5 0 0">
                 <TextBlock Padding="10"
-                           TextWrapping="WrapWithOverflow"
                            Text="{Binding SurveyName}"/>
             </Border>
             <TextBlock FontSize="15"
@@ -82,31 +94,24 @@
                        Text="* Обязательно"/>
 
         </DockPanel>
-        <ListBox BorderBrush="Black" 
-                 BorderThickness="0 0.5" 
-                 Margin="0 5" 
+        <ListBox Margin="0 5" 
                  ItemsSource="{Binding QuestionViewModels}"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-
                  VirtualizingPanel.ScrollUnit="Pixel">
             <ListBox.Resources>
 
                 <DataTemplate DataType="{x:Type questionVM:SingleAnswerQuestionViewModel}">
-                    <Border BorderBrush="Black" BorderThickness="0 0.5"
-                            Background="WhiteSmoke">
+                    <Border Style="{StaticResource QuestionBorderStyle}">
                         <StackPanel Margin="5">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" 
-                                           TextWrapping="WrapWithOverflow"
+                                <TextBlock Grid.Column="0"
                                            Text="{Binding QuestionText}"/>
                                 <TextBlock Grid.Column="1"
-                                           Margin="3 0 0 0"
-                                           FontSize="25"
-                                           Foreground="Red"
+                                           Style="{StaticResource IsRequired}"
                                            Text="*"
                                            Visibility="{Binding IsRequired, 
                                     Converter={StaticResource BoolToVisibility}}"/>
@@ -129,21 +134,17 @@
                 </DataTemplate>
 
                 <DataTemplate DataType="{x:Type questionVM:MultipleAnswerQuestionViewModel}">
-                    <Border BorderBrush="Black" BorderThickness="0 0.5"
-                            Background="WhiteSmoke">
+                    <Border Style="{StaticResource QuestionBorderStyle}">
                         <StackPanel Margin="5">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" 
-                                           TextWrapping="WrapWithOverflow"
+                                <TextBlock Grid.Column="0"
                                            Text="{Binding QuestionText}"/>
                                 <TextBlock Grid.Column="1"
-                                           Margin="3 0 0 0"
-                                           FontSize="25"
-                                           Foreground="Red"
+                                           Style="{StaticResource IsRequired}"
                                            Text="*"
                                            Visibility="{Binding IsRequired, 
                                         Converter={StaticResource BoolToVisibility}}"/>
@@ -167,21 +168,17 @@
                 </DataTemplate>
 
                 <DataTemplate DataType="{x:Type questionVM:FreeAnswerQuestionViewModel}">
-                    <Border BorderBrush="Black" BorderThickness="0 0.5"
-                            Background="WhiteSmoke">
+                    <Border Style="{StaticResource QuestionBorderStyle}">
                         <StackPanel Margin="5">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" 
-                                           TextWrapping="WrapWithOverflow"
+                                <TextBlock Grid.Column="0"
                                            Text="{Binding QuestionText}"/>
                                 <TextBlock Grid.Column="1"
-                                           Margin="3 0 0 0"
-                                           FontSize="25"
-                                           Foreground="Red"
+                                           Style="{StaticResource IsRequired}"
                                            Text="*"
                                            Visibility="{Binding IsRequired, Converter={StaticResource BoolToVisibility}}"/>
                             </Grid>
