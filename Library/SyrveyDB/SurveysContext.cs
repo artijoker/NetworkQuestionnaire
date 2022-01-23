@@ -571,7 +571,7 @@ namespace Library {
                         Id = 1,
                         Surname = "Большаков",
                         Name = "Петр",
-                        BirthDate = DateTime.Parse("01.07.1989"),
+                        BirthDate = DateTime.Parse("01.07.1983"),
                         Email = "petr1989@yandex.ru",
                         Login = "login",
                         Password = "password"
@@ -581,7 +581,7 @@ namespace Library {
                         Surname = "Аксенчук",
                         Name = "Семен",
                         Patronymic = "Никитович",
-                        BirthDate = DateTime.Parse("22.04.1973"),
+                        BirthDate = DateTime.Parse("22.04.1989"),
                         Email = "semen3401@hotmail.com",
                         Login = "semen3401",
                         Password = "8e71c26d7"

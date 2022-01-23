@@ -5,7 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AdminClient"
         mc:Ignorable="d"
-        Title="AddEditSurveyWindow" Height="450" Width="800">
+        Title="" Height="450" Width="800"
+        FontSize="13">
     <Window.Resources>
         <Style x:Key="DataGridCellStyle">
             <Setter Property="DataGridCell.BorderThickness" Value="0"/>
@@ -24,10 +25,9 @@
                         </Trigger>
                     </Style.Triggers>
                 </Style>
-
             </Style.Resources>
-
         </Style>
+        
         <local:BoolToStringConverter x:Key="BoolToString"/>
         <local:QuestionTypeToStringConverter x:Key="QuestionTypeToString"/>
         <local:QuestionToAmountAnswerConverter x:Key="QuestionToAmountAnswer"/>
@@ -60,39 +60,41 @@
         
         <Border BorderBrush="Black" 
                 BorderThickness="0.5"
-                 Margin="15 10 15 18">
+                Margin="15 10 15 18">
             <DockPanel>
                 <TextBlock DockPanel.Dock="Top"
-                       Padding="3"
-                       Text="Список вопросов:"/>
+                           Padding="3"
+                           Text="Список вопросов:"/>
                 <UniformGrid DockPanel.Dock="Bottom"
                              Columns="3">
                     <Button Content="Добавить"
-                        Command="{Binding AddQuestionCommand}"/>
+                            Command="{Binding AddQuestionCommand}"/>
                     <Button Content="Изменить"
-                        Command="{Binding EditQuestionCommand}"/>
+                            Command="{Binding EditQuestionCommand}"/>
                     <Button Content="Удалить"
-                        Command="{Binding RemoveQuestionCommand}"/>
+                            Command="{Binding RemoveQuestionCommand}"/>
                 </UniformGrid>
                 <DataGrid SelectionMode="Single"
-                      AutoGenerateColumns="False"
-                      ColumnWidth="*"
-                      CanUserAddRows="False"
-                      SelectionUnit="FullRow"
-                      IsReadOnly="True"
-                      RowHeaderWidth="0"
-                      SelectedItem="{Binding SelectedQuestion}"
-                      CellStyle="{StaticResource DataGridCellStyle}"
-                      ItemsSource="{Binding Questions}">
+                          AutoGenerateColumns="False"
+                          ColumnWidth="*"
+                          CanUserAddRows="False"
+                          SelectionUnit="FullRow"
+                          IsReadOnly="True"
+                          RowHeaderWidth="0"
+                          SelectedItem="{Binding SelectedQuestion}"
+                          CellStyle="{StaticResource DataGridCellStyle}"
+                          ItemsSource="{Binding Questions}">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Вопрос"
                                         Binding="{Binding Text}"/>
-                        <DataGridTextColumn Header="Тип вопроса"
-                                        Binding="{Binding Type, 
-                                        Converter={StaticResource QuestionTypeToString}}"/>
-                        <DataGridTextColumn Header="Обязательный"
-                                        Binding="{Binding IsRequired, 
-                                        Converter={StaticResource BoolToString} }"/>
+                        <DataGridTextColumn Width="Auto" 
+                                            Header="Тип вопроса"
+                                            Binding="{Binding Type, 
+                                            Converter={StaticResource QuestionTypeToString}}"/>
+                        <DataGridTextColumn Width="Auto"
+                                            Header="Обязательный"
+                                            Binding="{Binding IsRequired, 
+                                            Converter={StaticResource BoolToString} }"/>
                     </DataGrid.Columns>
                 </DataGrid>
             </DockPanel>

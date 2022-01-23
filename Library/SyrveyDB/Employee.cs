@@ -1,18 +1,85 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 
 namespace Library {
-    public partial class Employee {
+    public partial class Employee : INotifyPropertyChanged {
+        private int _id;
+        private string _login;
+        private string _password;
+        private string _name;
+        private string _surname;
+        private string _patronymic;
+        private DateTime _birthDate;
+        private string _email;
 
-        public int Id { get; set; }
-        public string Login { get; set; }
-        public string Password { get; set; }
-        public string Name { get; set; }
-        public string Surname { get; set; }
-        public string Patronymic { get; set; }
-        public DateTime BirthDate { get; set; }
-        public string Email { get; set; }
-        
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public int Id {
+            get => _id;
+            set {
+                _id = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Id)));
+            }
+        }
+
+        public string Login {
+            get => _login;
+            set {
+                _login = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Login)));
+            }
+        }
+
+        public string Password {
+            get => _password;
+            set {
+                _password = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Password)));
+            }
+        }
+
+        public string Name {
+            get => _name;
+            set {
+                _name = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Name)));
+            }
+        }
+
+        public string Surname {
+            get => _surname;
+            set {
+                _surname = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Surname)));
+            }
+        }
+
+        public string Patronymic {
+            get => _patronymic;
+            set {
+                _patronymic = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Patronymic)));
+            }
+        }
+
+        public DateTime BirthDate {
+            get => _birthDate;
+            set {
+                _birthDate = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(BirthDate)));
+            }
+        }
+
+
+        public string Email {
+            get => _email;
+            set {
+                _email = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Email)));
+            }
+        }
+
 
         public ICollection<Survey> Surveys { get; set; } = new HashSet<Survey>();
         public ICollection<EmployeeFreeAnswer> EmployeeFreeAnswers { get; set; } = new HashSet<EmployeeFreeAnswer>();
@@ -32,7 +99,7 @@ namespace Library {
             };
 
         static public Employee FromDTO(EmployeeDTO employeeDTO) =>
-            new Employee() { 
+            new Employee() {
                 Id = employeeDTO.Id, 
                 Login = employeeDTO.Login, 
                 Password = employeeDTO.Password, 

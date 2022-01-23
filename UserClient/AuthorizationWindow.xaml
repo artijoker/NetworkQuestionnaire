@@ -8,7 +8,8 @@
         Title="Авторизация" Height="280" Width="330"
         ResizeMode="NoResize"
         Icon="survey.ico"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        Loaded="Window_Loaded">
     <Window.Resources>
         <Style TargetType="TextBox">
             <Setter Property="TextBox.Margin" Value="10 2"/>

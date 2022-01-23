@@ -6,20 +6,24 @@ using System.Threading.Tasks;
 
 namespace Library {
     public static class Message {
-        public const byte Authorization = 1;
-        public const byte Сonnection = 2;
-        public const byte SurveyList = 3;
-        public const byte EmployeeAnswers = 4;
-        public const byte DataSaveSuccess = 5;
-        public const byte DataSaveUnsuccess = 6;
-        public const byte EmployeeList = 7;
-        public const byte AddNewEmployee = 8;
-        public const byte EditEmployee = 9;
-        public const byte RemoveEmployee = 10;
-        public const byte AddNewSurvey = 11;
-        public const byte EditSurvey = 12;
-        public const byte RemoveSurvey = 13;
-        public const byte AllSurveyAndQuestionTypes = 14;
-        public const byte AllAnswersEmployee = 15;
+        public const byte AdminConnect = 1;
+        public const byte AdminConnectSuccessful = 2;
+        public const byte AdminConnectFailed = 3;
+        public const byte Authorization = 4;
+        public const byte AuthorizationSuccessful = 5;
+        public const byte AuthorizationFailed = 6;
+        public const byte ListSurveysNotСompletedEmployee = 7;
+        public const byte EmployeeAnswers = 8;
+        public const byte DataSaveSuccess = 9;
+        public const byte DataSaveUnsuccess = 10;
+        public const byte EmployeesList = 11;
+        public const byte AddNewEmployee = 12;
+        public const byte EditEmployee = 13;
+        public const byte RemoveEmployee = 14;
+        public const byte AddNewSurvey = 15;
+        public const byte EditSurvey = 16;
+        public const byte RemoveSurvey = 17;
+        public const byte AllSurveyFromDBAndQuestionTypes = 18;
+        public const byte SurveysСompletedEmployee = 19;
     }
 }

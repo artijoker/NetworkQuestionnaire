@@ -18,16 +18,21 @@ namespace AdminClient {
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow : Window {
+        private MainWindowViewModel ViewModel;
         public MainWindow() {
             InitializeComponent();
-            MainWindowViewModel viewModel = new();
-            DataContext = viewModel;
-            viewModel.PropertyChanged += (sender, e) => {
+            ViewModel = new();
+            DataContext = ViewModel;
+            ViewModel.PropertyChanged += (sender, e) => {
                 if (e.PropertyName == "IsHide")
-                    Visibility = Visibility.Hidden;
+                    Visibility = ViewModel.IsHide ? Visibility.Hidden : Visibility.Visible;
                 if (e.PropertyName == "IsClose")
                     Close();
             };
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e) {
+            ViewModel.WindowLoaded();
         }
     }
 }

@@ -17,7 +17,7 @@ namespace UserClient {
         private bool _isClose;
         private bool _isEnabledInterface;
         private Visibility _visibilityAuthorizationProcess;
-        private readonly TcpClient _server;
+        private TcpClient _server;
         private string _ipAddress = "127.0.0.1";
         private int _port = 56537;
 
@@ -73,11 +73,26 @@ namespace UserClient {
         public DelegateCommand EnterCommand { get; }
 
         public AuthorizationWindowViewModel() {
-            _server = new TcpClient(_ipAddress, _port);
             EnterCommand = new DelegateCommand(Enter);
-            IsEnabledInterface = true;
-            VisibilityAuthorizationProcess = Visibility.Hidden;
-            Authorization();
+            
+        }
+        public void WindowLoaded() {
+            try {
+                _server = new(_ipAddress, _port);
+                IsEnabledInterface = true;
+                VisibilityAuthorizationProcess = Visibility.Hidden;
+                Authorization();
+            }
+            catch (SocketException ex) {
+
+                MessageBox.Show(
+                    ex.Message,
+                    "Ошибка соединения",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                    );
+                IsClose = true;
+            }
         }
 
         private async void Enter() {
@@ -112,7 +127,7 @@ namespace UserClient {
                     byte[] buffer = await _server.ReadFromStream(1);
                     byte message = buffer[0];
 
-                    if (message == Message.Authorization) {
+                    if (message == Message.AuthorizationFailed) {
                         buffer = await _server.ReadFromStream(4);
                         buffer = await _server.ReadFromStream(BitConverter.ToInt32(buffer, 0));
                         MessageBox.Show(
@@ -124,7 +139,7 @@ namespace UserClient {
                         IsEnabledInterface = true;
                         VisibilityAuthorizationProcess = Visibility.Hidden;
                     }
-                    else if (message == Message.Сonnection) {
+                    else if (message == Message.AuthorizationSuccessful) {
                         buffer = await _server.ReadFromStream(4);
                         buffer = await _server.ReadFromStream(BitConverter.ToInt32(buffer, 0));
                         Employee employee = Employee.FromDTO(JsonSerializer.Deserialize<EmployeeDTO>(Encoding.UTF8.GetString(buffer)));

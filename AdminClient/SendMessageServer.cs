@@ -10,21 +10,31 @@ using System.Threading.Tasks;
 
 namespace AdminClient {
     class SendMessageServer {
-        public static async Task SendEmployeeListMessage(TcpClient server) {
+        public static async Task SendAdminConnectMessage(TcpClient server) {
             MemoryStream stream = new MemoryStream();
             BinaryWriter writer = new BinaryWriter(stream);
 
-            writer.Write(Message.EmployeeList);
+            writer.Write(Message.AdminConnect);
             byte[] buffer = stream.ToArray();
 
             await server.GetStream().WriteAsync(buffer, 0, buffer.Length);
         }
 
-        public static async Task SendSurveyListMessage(TcpClient server) {
+        public static async Task SendEmployeeListMessage(TcpClient server) {
             MemoryStream stream = new MemoryStream();
             BinaryWriter writer = new BinaryWriter(stream);
 
-            writer.Write(Message.AllSurveyAndQuestionTypes);
+            writer.Write(Message.EmployeesList);
+            byte[] buffer = stream.ToArray();
+
+            await server.GetStream().WriteAsync(buffer, 0, buffer.Length);
+        }
+
+        public static async Task SendAllSurveyAndQuestionTypesMessage(TcpClient server) {
+            MemoryStream stream = new MemoryStream();
+            BinaryWriter writer = new BinaryWriter(stream);
+
+            writer.Write(Message.AllSurveyFromDBAndQuestionTypes);
             byte[] buffer = stream.ToArray();
 
             await server.GetStream().WriteAsync(buffer, 0, buffer.Length);
@@ -116,7 +126,7 @@ namespace AdminClient {
             MemoryStream stream = new MemoryStream();
             BinaryWriter writer = new BinaryWriter(stream);
 
-            writer.Write(Message.AllAnswersEmployee);
+            writer.Write(Message.SurveysСompletedEmployee);
             writer.Write(employee.Id);
             byte[] buffer = stream.ToArray();
 

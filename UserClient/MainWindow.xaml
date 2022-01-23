@@ -6,8 +6,8 @@
         xmlns:local="clr-namespace:UserClient"
         xmlns:lib ="clr-namespace:Library;assembly=Library"
         mc:Ignorable="d"
-        Title="MainWindow" 
-        Height="570" 
+        Title="" 
+        Height="550" 
         Width="800"
         MinHeight="550"
         MinWidth="600">
@@ -78,15 +78,8 @@
                                        Padding="5"
                                        Text="Данные сотрудника"
                                        FontSize="23"/>
-                            <Button DockPanel.Dock="Bottom"
-                                    Padding="8"
-                                    Margin="25 12"
-                                    FontSize="18"
-                                    Content="Изменить данные"
-                                    Visibility="Collapsed"
-                                    Command="{Binding ConfirmCommand}"
-                                    IsEnabled="false"/>
-                            <UniformGrid Rows ="6"  
+      
+                            <UniformGrid Rows ="5"  
                                          Margin="10 0">
                                 <StackPanel>
                                     <TextBlock FontSize="14"
@@ -100,7 +93,7 @@
                                     <TextBlock Padding="0 0 0 3"
                                                Text="{Binding Employee.Surname}"/>
                                 </StackPanel>
-                                <StackPanel Visibility="{Binding VisibilityPatronymic}">
+                                <StackPanel>
                                     <TextBlock FontSize="14"
                                                Text="Отчество"/>
                                     <TextBlock Padding="0 0 0 3"

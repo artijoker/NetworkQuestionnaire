@@ -5,11 +5,14 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AdminClient"
         mc:Ignorable="d"
-        Title="SurveysWindow" Height="450" Width="800"
+        Title="" Height="450" Width="800"
         FontSize="12">
     <Window.Resources>
         <Style x:Key="DataGridCellStyle">
             <Setter Property="DataGridCell.BorderThickness" Value="0"/>
+        </Style>
+        <Style x:Key="RightAligned" BasedOn="{StaticResource DataGridCellStyle}">
+            <Setter Property="TextBlock.TextAlignment" Value="Right"/>
         </Style>
         <Style TargetType="Button">
             <Setter Property="Background" Value="LightBlue"/>
@@ -34,7 +37,8 @@
         <DockPanel>
 
             <UniformGrid DockPanel.Dock="Top"  
-                         Columns="3">
+                         Columns="3"
+                         IsEnabled="{Binding IsEnabledInterface}">
                 <Button Content="Добавить"
                         Command="{Binding AddSurveyCommand}"/>
                 <Button Content="Редактировать"
@@ -63,10 +67,13 @@
                       CellStyle="{StaticResource DataGridCellStyle}"
                       ItemsSource="{Binding Surveys}">
                 <DataGrid.Columns>
+
                     <DataGridTextColumn Header="Название опроса"
                                         Binding="{Binding Name}"/>
-                    <DataGridTextColumn Header="Количество вопросов"
-                                        Binding="{Binding Questions.Count, Mode=OneWay}"/>
+                    <DataGridTextColumn Width="Auto"
+                                        Header="Количество вопросов"
+                                        Binding="{Binding Questions.Count, Mode=OneWay}"
+                                        CellStyle="{StaticResource RightAligned}"/>
                 </DataGrid.Columns>
             </DataGrid>
 
@@ -86,7 +93,7 @@
                 <Image Grid.Column="0"
                        HorizontalAlignment="Center" 
                        VerticalAlignment="Center" 
-                       Source="loading.png"
+                       Source="Image/loading.png"
                        RenderTransformOrigin="0.5,0.5"
                        Margin="5"
                        Width="120">

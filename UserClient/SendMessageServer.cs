@@ -13,11 +13,10 @@ namespace UserClient {
         public static async Task SendAuthorizationMessage(TcpClient server, string login, string password) {
             MemoryStream stream = new MemoryStream();
             BinaryWriter writer = new BinaryWriter(stream);
-
             writer.Write(Message.Authorization);
 
             //Шифрование Логина
-            byte[] key = Enumerable.Range(0, 32).Select(x => (byte)x).ToArray();
+            byte[] key = Enumerable.Range(0, 32).Select(n => (byte)n).ToArray();
             string base64 = Encryption.Encrypt(login, key);
             writer.Write(key.Length);
             writer.Write(key);
@@ -35,7 +34,6 @@ namespace UserClient {
             writer.Write(buffer);
 
             buffer = stream.ToArray();
-
             await server.GetStream().WriteAsync(buffer, 0, buffer.Length);
         }
 
@@ -43,7 +41,7 @@ namespace UserClient {
             MemoryStream stream = new MemoryStream();
             BinaryWriter writer = new BinaryWriter(stream);
 
-            writer.Write(Message.SurveyList);
+            writer.Write(Message.ListSurveysNotСompletedEmployee);
             writer.Write(employee.Id);
             byte[] buffer = stream.ToArray();
 

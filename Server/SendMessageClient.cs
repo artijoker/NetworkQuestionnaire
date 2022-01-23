@@ -10,12 +10,35 @@ using System.Threading.Tasks;
 
 namespace Server {
     class SendMessageClient {
-        public static async Task SendAuthorizationMessage(TcpClient client) {
+        public static async Task SendAdminConnectSuccessfulMessage(TcpClient client) {
             MemoryStream stream = new MemoryStream();
             BinaryWriter writer = new BinaryWriter(stream);
 
-            writer.Write(Message.Authorization);
-            byte[] buffer = Encoding.UTF8.GetBytes("Ошибка! Неверный логин или пароль");
+            writer.Write(Message.AdminConnectSuccessful);
+            byte[] buffer = stream.ToArray();
+
+            await client.GetStream().WriteAsync(buffer, 0, buffer.Length);
+        }
+
+        public static async Task SendAdminConnectFailedMessage(TcpClient client, string message) {
+            MemoryStream stream = new MemoryStream();
+            BinaryWriter writer = new BinaryWriter(stream);
+
+            writer.Write(Message.AdminConnectFailed);
+            byte[] buffer = Encoding.UTF8.GetBytes(message);
+            writer.Write(buffer.Length);
+            writer.Write(buffer);
+            buffer = stream.ToArray();
+
+            await client.GetStream().WriteAsync(buffer, 0, buffer.Length);
+        }
+
+        public static async Task SendAuthorizationFailedMessage(TcpClient client, string message) {
+            MemoryStream stream = new MemoryStream();
+            BinaryWriter writer = new BinaryWriter(stream);
+
+            writer.Write(Message.AuthorizationFailed);
+            byte[] buffer = Encoding.UTF8.GetBytes(message);
             writer.Write(buffer.Length);
             writer.Write(buffer);
             buffer = stream.ToArray();
@@ -24,11 +47,11 @@ namespace Server {
         }
 
 
-        public static async Task SendСonnectionMessage(TcpClient client, Employee employee) { 
+        public static async Task SendAuthorizationSuccessfulMessage(TcpClient client, Employee employee) { 
             MemoryStream stream = new MemoryStream();
             BinaryWriter writer = new BinaryWriter(stream);
 
-            writer.Write(Message.Сonnection);
+            writer.Write(Message.AuthorizationSuccessful);
             byte[] buffer = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(employee.ToDTO()));
             writer.Write(buffer.Length);
             writer.Write(buffer);
@@ -42,7 +65,7 @@ namespace Server {
             BinaryWriter writer = new BinaryWriter(stream);
 
 
-            writer.Write(Message.SurveyList);
+            writer.Write(Message.ListSurveysNotСompletedEmployee);
 
             byte[] buffer = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(surveys.Select(survey => survey.ToDTO()).ToArray()));
             writer.Write(buffer.Length);
@@ -57,7 +80,7 @@ namespace Server {
             BinaryWriter writer = new BinaryWriter(stream);
 
 
-            writer.Write(Message.AllSurveyAndQuestionTypes);
+            writer.Write(Message.AllSurveyFromDBAndQuestionTypes);
 
             byte[] buffer = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(surveys.Select(survey => survey.ToDTO()).ToArray()));
             writer.Write(buffer.Length);
@@ -89,7 +112,7 @@ namespace Server {
             BinaryWriter writer = new BinaryWriter(stream);
 
 
-            writer.Write(Message.EmployeeList);
+            writer.Write(Message.EmployeesList);
 
             byte[] buffer = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(employees.Select(employee => employee.ToDTO()).ToArray()));
             writer.Write(buffer.Length);
@@ -104,9 +127,10 @@ namespace Server {
             BinaryWriter writer = new BinaryWriter(stream);
 
 
-            writer.Write(Message.AllAnswersEmployee);
+            writer.Write(Message.SurveysСompletedEmployee);
 
             byte[] buffer = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(surveys.Select(survey => survey.ToDTO()).ToArray()));
+
             writer.Write(buffer.Length);
             writer.Write(buffer);
             buffer = stream.ToArray();

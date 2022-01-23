@@ -4,65 +4,28 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
-using System.IO;
 using Library;
 using System.Net.Sockets;
 using System.Collections.ObjectModel;
 using System.Net;
 
 namespace Server {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window {
-
-        private IList<TcpClient> _clients;
+        private TcpClient? _admin;
+        private IList<ConnectedEmployee> _employees;
+        private bool _isAdminConnect;
         public ObservableCollection<string> Logs { get; }
 
         public MainWindow() {
             InitializeComponent();
             DataContext = this;
             Logs = new ObservableCollection<string>();
-            _clients = new List<TcpClient>();
-            //ConnectDatabase();
+            _employees = new List<ConnectedEmployee>();
+            _isAdminConnect = false;
         }
 
-        void ConnectDatabase() {
-            using (SurveysContext context = new()) {
-                context.QuestionTypes.Load();
-                var survey = context.Surveys.Where(s => s.Id == 1).Include("Questions").First();
-
-                //foreach (var question in survey.Questions) {
-                //    context.Entry(question).Collection("FreeAnswers").Load();
-                //    context.Entry(question).Collection("MultipleAnswers").Load();
-                //    context.Entry(question).Collection("SingleAnswers").Load();
-                //}
-
-
-
-
-                string jsonString = JsonSerializer.Serialize(survey.Questions.Select(question => question.ToDTO()).ToArray());
-                File.WriteAllText("test.json", jsonString);
-                var encoding = Encoding.UTF8.GetBytes(jsonString);
-                var decoding = Encoding.UTF8.GetString(encoding);
-                var survey1 = JsonSerializer.Deserialize<QuestionDTO[]>(decoding);
-
-                int x = 5;
-            }
-
-
-        }
 
         private void Window_Loaded(object sender, RoutedEventArgs e) {
 
@@ -71,57 +34,57 @@ namespace Server {
             listener.Start();
             ServeClients(listener);
         }
+
         private async void ServeClients(TcpListener listener) {
             while (true) {
                 TcpClient client = await listener.AcceptTcpClientAsync();
-                lock (_clients)
-                    _clients.Add(client);
-
                 ServeClient(client);
             }
         }
 
         private async void ServeClient(TcpClient client) {
-            Dispatcher.Invoke(() => Logs.Add($"Подключился {client.Client.RemoteEndPoint} {DateTime.Now}"));
+
             try {
                 while (true) {
                     byte[] buffer = await client.ReadFromStream(1);
                     byte message = buffer[0];
 
                     if (message == Message.Authorization) {
-                        buffer = await client.ReadFromStream(4);
-                        byte[] key = await client.ReadFromStream(BitConverter.ToInt32(buffer, 0));
-
-                        buffer = await client.ReadFromStream(4);
-                        buffer = await client.ReadFromStream(BitConverter.ToInt32(buffer, 0));
-                        string base64 = Encoding.UTF8.GetString(buffer);
-
-                        string login = Encryption.Decrypt(base64, key);
-
-
-                        buffer = await client.ReadFromStream(4);
-                        key = await client.ReadFromStream(BitConverter.ToInt32(buffer, 0));
-
-                        buffer = await client.ReadFromStream(4);
-                        buffer = await client.ReadFromStream(BitConverter.ToInt32(buffer, 0));
-                        base64 = Encoding.UTF8.GetString(buffer);
-
-                        string password = Encryption.Decrypt(base64, key);
-
-                        using (SurveysContext context = new()) {
-                            var employee = context.Employees.Where(employee => employee.Login == login && employee.Password == password).FirstOrDefault();
-                            if (employee is null) {
-                                await SendMessageClient.SendAuthorizationMessage(client);
-                                Logs.Add($"Подключился {client.Client.RemoteEndPoint} ошибка при авторизации");
-                            }
-                            else {
-                                await SendMessageClient.SendСonnectionMessage(client, employee);
-                                Logs.Add($"Подключился {client.Client.RemoteEndPoint} прошел авторизацию");
-                            }
+                        Employee? employee = await GetEmployee(client);
+                        if (employee is null) {
+                            string errorMessage = "Ошибка! Неверный логин или пароль";
+                            await SendMessageClient.SendAuthorizationFailedMessage(client, errorMessage);
+                            Logs.Add($"Пользователь {client.Client.RemoteEndPoint} ошибка при авторизации. Неверный логин или пароль.");
                         }
-
+                        else if (_employees.Any(e => e.Employee.Id == employee.Id)) {
+                            string errorMessage = "Ошибка! Этот сотрудник уже сети.";
+                            await SendMessageClient.SendAuthorizationFailedMessage(client, errorMessage);
+                            Logs.Add($"Пользователь {client.Client.RemoteEndPoint} ошибка при авторизации. ");
+                        }
+                        else {
+                            await SendMessageClient.SendAuthorizationSuccessfulMessage(client, employee);
+                            Logs.Add($"Пользователь {client.Client.RemoteEndPoint} прошел авторизацию.");
+                            lock (_employees)
+                                _employees.Add(new(employee, client));
+                        }
                     }
-                    else if (message == Message.SurveyList) {
+                    else if (message == Message.AdminConnect) {
+                        if (!_isAdminConnect) {
+                            lock (_employees)
+                                _admin = client;
+                            _isAdminConnect = true;
+                            await SendMessageClient.SendAdminConnectSuccessfulMessage(client);
+                            Dispatcher.Invoke(() => Logs.Add($"Администратор подключился {client.Client.RemoteEndPoint} {DateTime.Now}."));
+                        }
+                        else {
+                            await SendMessageClient.SendAdminConnectFailedMessage(client, "Ошибка! Администратор уже в сети.");
+                            if (client.Client.Connected)
+                                client.Client.Shutdown(SocketShutdown.Both);
+                            client.Client.Close();
+                            return;
+                        }
+                    }
+                    else if (message == Message.ListSurveysNotСompletedEmployee) {
                         buffer = await client.ReadFromStream(4);
                         int employeeId = BitConverter.ToInt32(buffer, 0);
                         Survey[] surveys;
@@ -139,7 +102,7 @@ namespace Server {
                         }
                         await SendMessageClient.SendSurveyListMessage(client, surveys);
                     }
-                    else if (message == Message.AllSurveyAndQuestionTypes) {
+                    else if (message == Message.AllSurveyFromDBAndQuestionTypes) {
                         Survey[] surveys;
                         QuestionType[] questionTypes;
                         using (SurveysContext context = new()) {
@@ -151,37 +114,8 @@ namespace Server {
                             context.SingleAnswers.Load();
                             surveys = context.Surveys.ToArray();
                             questionTypes = context.QuestionTypes.ToArray();
-
-
-                            /*surveys = context.Surveys.Select(s =>
-                                new Survey() {
-                                    Id = s.Id,
-                                    Name = s.Name,
-                                    Questions = s.Questions.Select(q => new Question() {
-                                        Id = q.Id,
-                                        IsRequired = q.IsRequired,
-                                        SurveyId = q.SurveyId,
-                                        QuestionTypeId = q.QuestionTypeId,
-                                        Text = q.Text,
-                                        SingleAnswers = q.SingleAnswers.Select(
-                                            a => new SingleAnswer() {
-                                                Id = a.Id,
-                                                Text = a.Text,
-                                                QuestionId = a.QuestionId
-                                            }).ToArray(),
-                                        MultipleAnswers = q.MultipleAnswers.Select(
-                                            a => new MultipleAnswer(){
-                                                Id = a.Id,
-                                                Text = a.Text,
-                                                QuestionId = a.QuestionId
-                                            }).ToArray(),
-                                        FreeAnswers = q.FreeAnswers.Select(a => new FreeAnswer() {
-                                            Id = a.Id,
-                                            QuestionId = a.QuestionId
-                                        }).ToArray()
-                                    }).ToArray()
-                                }).ToArray();*/
                         }
+
                         await SendMessageClient.SendAllSurveyAndQuestionTypeMessage(client, surveys, questionTypes);
                     }
 
@@ -189,64 +123,15 @@ namespace Server {
                         buffer = await client.ReadFromStream(4);
                         buffer = await client.ReadFromStream(BitConverter.ToInt32(buffer, 0));
 
-#pragma warning disable CS8600
                         EmployeeSurveyAnswer employeeAnswer = JsonSerializer.Deserialize<EmployeeSurveyAnswer>(
-                            Encoding.UTF8.GetString(buffer),
-                            options: new() { IncludeFields = true }
-                            );
-
-#pragma warning disable CS8602
-                        Employee employee = new() { Id = employeeAnswer.EmployeeId };
-#pragma warning restore CS8602
-
-                        Survey survey = new() { Id = employeeAnswer.SurveyId };
-
-                        using (SurveysContext context = new()) {
-                            context.Attach(employee);
-                            context.Attach(survey);
-                            employee.Surveys.Add(survey);
-                            survey.Employees.Add(employee);
-
-                            foreach (var tuple in employeeAnswer.FreeAnswersIds) {
-                                int id = tuple.Item1;
-                                string text = tuple.Item2;
-
-                                FreeAnswer freeAnswer = new() { Id = id };
-                                context.Attach(freeAnswer);
-
-                                EmployeeFreeAnswer employeeFreeAnswer = new EmployeeFreeAnswer() {
-                                    FreeAnswer = freeAnswer,
-                                    Employee = employee,
-                                    Text = text
-                                };
-                                freeAnswer.EmployeeFreeAnswers.Add(employeeFreeAnswer);
-                                employee.EmployeeFreeAnswers.Add(employeeFreeAnswer);
-
-                            }
-                            foreach (var id in employeeAnswer.SingleAnswersIds) {
-                                SingleAnswer singleAnswer = new() { Id = id };
-
-                                context.Attach(singleAnswer);
-                                employee.SingleAnswers.Add(singleAnswer);
-                                singleAnswer.Employees.Add(employee);
-
-                            }
-                            foreach (var id in employeeAnswer.MultipleAnswersIds) {
-                                MultipleAnswer multipleAnswer = new() { Id = id };
-
-                                context.Attach(multipleAnswer);
-                                employee.MultipleAnswers.Add(multipleAnswer);
-                                multipleAnswer.Employees.Add(employee);
-
-                            }
-
-                            context.SaveChanges();
-                        }
+                            Encoding.UTF8.GetString(buffer), options: new() { IncludeFields = true });
+                        SaveEmployeeAnswers(employeeAnswer);
 
                         await SendMessageClient.SendDataSaveSuccessMessage(client, "Данные успешно сохранены!");
+                        Logs.Add($"Пользователь {client.Client.RemoteEndPoint} прошел опрос.");
                     }
 
-                    else if (message == Message.EmployeeList) {
+                    else if (message == Message.EmployeesList) {
 
                         Employee[] employees;
                         using (SurveysContext context = new()) {
@@ -265,6 +150,7 @@ namespace Server {
                             context.SaveChanges();
                         }
                         await SendMessageClient.SendDataSaveSuccessMessage(client, "Новый сотрудник добавлен в базу данных!");
+                        Logs.Add($"В базу добавлен новый сотрудник.");
                     }
                     else if (message == Message.EditEmployee) {
                         buffer = await client.ReadFromStream(4);
@@ -277,6 +163,7 @@ namespace Server {
                             context.SaveChanges();
                         }
                         await SendMessageClient.SendDataSaveSuccessMessage(client, "Измененые данные о сотруднике зафиксированы в базе данных!");
+                        Logs.Add($"Измененые данные о сотруднике зафиксированы в базе.");
                     }
                     else if (message == Message.RemoveEmployee) {
                         buffer = await client.ReadFromStream(4);
@@ -289,27 +176,12 @@ namespace Server {
                             context.SaveChanges();
                         }
                         await SendMessageClient.SendDataSaveSuccessMessage(client, "Сотрудник удален из базы данных!");
+                        Logs.Add($"Из базы удален сотрудник.");
                     }
-                    else if (message == Message.AllAnswersEmployee) {
+                    else if (message == Message.SurveysСompletedEmployee) {
                         buffer = await client.ReadFromStream(4);
                         int employeeId = BitConverter.ToInt32(buffer, 0);
-                        Survey[] surveys;
-                        using (SurveysContext context = new()) {
-
-                            surveys = context.Surveys.Where(survey => survey.Employees.Any(employee => employee.Id == employeeId))
-                               .Include(s => s.Questions)
-                                   .ThenInclude(q => q.Type)
-                               .Include(s => s.Questions)
-                                   .ThenInclude(q => q.SingleAnswers)
-                                       .ThenInclude(a => a.Employees.Where(e => e.Id == employeeId))
-                               .Include(s => s.Questions)
-                                   .ThenInclude(q => q.MultipleAnswers)
-                                       .ThenInclude(a => a.Employees.Where(e => e.Id == employeeId))
-                               .Include(s => s.Questions)
-                                   .ThenInclude(q => q.FreeAnswers)
-                                       .ThenInclude(a => a.EmployeeFreeAnswers.Where(e => e.EmployeeId == employeeId))
-                               .ToArray();
-                        }
+                        Survey[] surveys = GetSurveysСompletedEmployee(employeeId);
                         await SendMessageClient.SendAllAnswersEmployeeMessage(client, surveys);
                     }
                     else if (message == Message.AddNewSurvey) {
@@ -324,6 +196,7 @@ namespace Server {
                             context.SaveChanges();
                         }
                         await SendMessageClient.SendDataSaveSuccessMessage(client, "Новый опрос добавлен в базу данных!");
+                        Logs.Add($"В базу добавлен новый опрос.");
                     }
                     else if (message == Message.EditSurvey) {
                         buffer = await client.ReadFromStream(4);
@@ -335,67 +208,167 @@ namespace Server {
                         UpdateSurvey(survey);
 
                         await SendMessageClient.SendDataSaveSuccessMessage(client, "Измененые опрос зафиксирован в базе данных!");
+                        Logs.Add($"Измененые опрос зафиксирован в базе.");
                     }
                     else if (message == Message.RemoveSurvey) {
                         buffer = await client.ReadFromStream(4);
                         int surveyId = BitConverter.ToInt32(buffer, 0);
 
                         Survey survey = new Survey() { Id = surveyId };
-
                         using (SurveysContext context = new()) {
-
-                            var surveys = context.Surveys.Where(survey => survey.Employees.Any(employee => employee.Id == 1))
-                               .Include(s => s.Questions)
-                                   .ThenInclude(q => q.Type)
-                               .Include(s => s.Questions)
-                                   .ThenInclude(q => q.SingleAnswers)
-                                       .ThenInclude(a => a.Employees.Where(e => e.Id == 1))
-                               .Include(s => s.Questions)
-                                   .ThenInclude(q => q.MultipleAnswers)
-                                       .ThenInclude(a => a.Employees.Where(e => e.Id == 1))
-                               .Include(s => s.Questions)
-                                   .ThenInclude(q => q.FreeAnswers)
-                                       .ThenInclude(a => a.EmployeeFreeAnswers.Where(e => e.EmployeeId == 1))
-                               .ToArray();
-
                             context.Surveys.Remove(survey);
-                            //context.SaveChanges();
+                            context.SaveChanges();
                         }
                         await SendMessageClient.SendDataSaveSuccessMessage(client, "Опрос удален из базы данных!");
+                        Logs.Add($"Из базы удален опрос.");
                     }
 
                 }
             }
-            catch (Exception ex) {
-                MessageBox.Show(ex.Message);
-                lock (_clients) {
-                    Logs.Add($"Отключился {client.Client.RemoteEndPoint} {DateTime.Now}");
-                    if (client.Client.Connected)
-                        client.Client.Shutdown(SocketShutdown.Both);
-                    client.Client.Close();
-                    _clients.Remove(client);
-                }
-            }
+            catch (Exception) {
+                ConnectedEmployee? connectedEmployee =
+                    _employees.Where(employee => employee.Client.Client.RemoteEndPoint == client.Client.RemoteEndPoint)
+                    .SingleOrDefault();
+                if (_admin is not null && _admin.Client.RemoteEndPoint == client.Client.RemoteEndPoint)
+                    _isAdminConnect = false;
+                
+                Logs.Add($"Отключился {client.Client.RemoteEndPoint} {DateTime.Now}.");
+                if (client.Client.Connected)
+                    client.Client.Shutdown(SocketShutdown.Both);
+                client.Client.Close();
+                if (connectedEmployee is not null)
+                    lock (_employees) {
+                        _employees.Remove(connectedEmployee);
+                    }
 
+
+            }
+        }
+        private async Task<Employee?> GetEmployee(TcpClient client) {
+            byte[] buffer = await client.ReadFromStream(4);
+            byte[] key = await client.ReadFromStream(BitConverter.ToInt32(buffer, 0));
+
+            buffer = await client.ReadFromStream(4);
+            buffer = await client.ReadFromStream(BitConverter.ToInt32(buffer, 0));
+            string base64 = Encoding.UTF8.GetString(buffer);
+
+            string login = Encryption.Decrypt(base64, key);
+
+
+            buffer = await client.ReadFromStream(4);
+            key = await client.ReadFromStream(BitConverter.ToInt32(buffer, 0));
+
+            buffer = await client.ReadFromStream(4);
+            buffer = await client.ReadFromStream(BitConverter.ToInt32(buffer, 0));
+            base64 = Encoding.UTF8.GetString(buffer);
+
+            string password = Encryption.Decrypt(base64, key);
+
+            Employee? employee;
+            using (SurveysContext context = new()) {
+                employee = context.Employees.Where(employee => employee.Login == login && employee.Password == password).SingleOrDefault();
+            }
+            return employee;
 
         }
+
+        private void SaveEmployeeAnswers(EmployeeSurveyAnswer employeeAnswer) {
+            Employee employee = new() { Id = employeeAnswer.EmployeeId };
+
+
+            Survey survey = new() { Id = employeeAnswer.SurveyId };
+
+            using (SurveysContext context = new()) {
+                context.Attach(employee);
+                context.Attach(survey);
+                employee.Surveys.Add(survey);
+                survey.Employees.Add(employee);
+
+                foreach (var tuple in employeeAnswer.FreeAnswersIds) {
+                    int id = tuple.Item1;
+                    string text = tuple.Item2;
+
+                    FreeAnswer freeAnswer = new() { Id = id };
+                    context.Attach(freeAnswer);
+
+                    EmployeeFreeAnswer employeeFreeAnswer = new EmployeeFreeAnswer() {
+                        FreeAnswer = freeAnswer,
+                        Employee = employee,
+                        Text = text
+                    };
+                    freeAnswer.EmployeeFreeAnswers.Add(employeeFreeAnswer);
+                    employee.EmployeeFreeAnswers.Add(employeeFreeAnswer);
+
+                }
+                foreach (var id in employeeAnswer.SingleAnswersIds) {
+                    SingleAnswer singleAnswer = new() { Id = id };
+
+                    context.Attach(singleAnswer);
+                    employee.SingleAnswers.Add(singleAnswer);
+                    singleAnswer.Employees.Add(employee);
+
+                }
+                foreach (var id in employeeAnswer.MultipleAnswersIds) {
+                    MultipleAnswer multipleAnswer = new() { Id = id };
+
+                    context.Attach(multipleAnswer);
+                    employee.MultipleAnswers.Add(multipleAnswer);
+                    multipleAnswer.Employees.Add(employee);
+
+                }
+
+                context.SaveChanges();
+            }
+        }
+
+        private Survey[] GetSurveysСompletedEmployee(int employeeId) {
+
+            using (SurveysContext context = new()) {
+                return context.Surveys.Where(survey => survey.Employees.Any(employee => employee.Id == employeeId))
+                   .Include(survey => survey.Questions)
+                       .ThenInclude(question => question.Type)
+                   .Include(s => s.Questions)
+                       .ThenInclude(question => question.SingleAnswers)
+                           .ThenInclude(a => a.Employees.Where(employee => employee.Id == employeeId))
+                   .Include(survey => survey.Questions)
+                       .ThenInclude(question => question.MultipleAnswers)
+                           .ThenInclude(answer => answer.Employees.Where(employee => employee.Id == employeeId))
+                   .Include(survey => survey.Questions)
+                       .ThenInclude(question => question.FreeAnswers)
+                           .ThenInclude(answer => answer.EmployeeFreeAnswers.Where(employee => employee.EmployeeId == employeeId))
+                   .ToArray();
+            }
+        }
+
         private void UpdateSurvey(Survey survey) {
             using (SurveysContext context = new()) {
-                //Update
-                //context.Entry(surveyFromDB).CurrentValues.SetValues(survey);
+                Question[]? questions = context.Questions
+                    .Where(question => question.SurveyId == survey.Id)
+                    .ToArray();
 
-                Question[]? questions = context.Questions.Where(question => question.SurveyId == survey.Id).ToArray();
-                context.Questions.RemoveRange(questions.Where(question => !survey.Questions.Any(q => q.Id == question.Id)).ToArray());
-                context.Questions.AddRange(survey.Questions.Where(question => !context.Questions.Any(q => q.Id == question.Id)).ToArray());
+                context.Questions.RemoveRange(
+                    questions.Where(question => !survey.Questions.Any(q => q.Id == question.Id))
+                    .ToArray()
+                    );
 
-                questions = survey.Questions.Where(question => context.Questions.Any(q => q.Id == question.Id && question.Id != 0)).ToArray();
+                context.Questions.AddRange(
+                    survey.Questions.Where(question => !context.Questions.Any(q => q.Id == question.Id))
+                    .ToArray()
+                    );
 
-                foreach (Question question in questions)
-                    UpdateQuestion(context, question);
+                questions = survey.Questions.Where(
+                    question => context.Questions.Any(q => q.Id == question.Id && question.Id != 0))
+                    .ToArray();
+
+                questions.ForEach(question => UpdateQuestion(context, question));
+
 
                 Survey surveyFromDB = context.Surveys.Where(s => s.Id == survey.Id).Single();
                 surveyFromDB.Name = survey.Name;
-                Employee[]? employees = context.Employees.Include(e => e.Surveys).Where(e => e.Surveys.Any(s => s.Id == surveyFromDB.Id)).ToArray();
+                Employee[]? employees = context.Employees
+                    .Include(e => e.Surveys)
+                    .Where(e => e.Surveys.Any(s => s.Id == surveyFromDB.Id))
+                    .ToArray();
                 employees.ForEach(e => e.Surveys.Remove(surveyFromDB));
                 surveyFromDB.Employees.Clear();
 
@@ -455,5 +428,7 @@ namespace Server {
             questionFromDB.Text = question.Text;
             questionFromDB.QuestionTypeId = question.QuestionTypeId;
         }
+
+
     }
 }

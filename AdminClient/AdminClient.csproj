@@ -17,13 +17,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="icon_employee.png">
+    <Resource Include="Image\icon_employee.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="icon_syrvey.png">
+    <Resource Include="Image\icon_syrvey.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="loading.png">
+    <Resource Include="Image\loading.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
   </ItemGroup>

@@ -34,6 +34,7 @@ namespace AdminClient {
             QuestionViewModels = new ObservableCollection<QuestionViewModel.QuestionViewModel>(
                survey.Questions.Select(question => QuestionViewModel.QuestionViewModel.GetViewModel(question)));
 
+            int x = 5;
         }
 
     }
