@@ -119,6 +119,8 @@ namespace AdminClient {
 
                         Survey[] surveys = JsonSerializer.Deserialize<SurveyDTO[]>(Encoding.UTF8.GetString(buffer))
                             .Select(surveyDTO => Survey.FromDTO(surveyDTO)).ToArray();
+
+
                         VisibilityProcess = Visibility.Hidden;
                         if (surveys.Length == 0) {
                             MessageBox.Show(
@@ -161,34 +163,37 @@ namespace AdminClient {
 
         private async void AddEmployee() {
             Employee employee;
-            while (true) {
+            
                 AddEditEmployeeWindow dialog = new();
+            while (true) {
                 if (dialog.ShowDialog() == true) {
                     employee = dialog.ViewModel.Employee;
                     if (!IsEmailCorrect(employee)) {
-                        MessageBox.Show("Такой email уже есть в базе!",
+                        MessageBox.Show("Сотрудник с таким email уже есть в базе!",
                             "Ошибка!",
                             MessageBoxButton.OK,
                             MessageBoxImage.Error
                             );
+                        dialog = new(employee);
                         continue;
                     }
                     if (!IsLoginCorrect(employee)) {
-                        MessageBox.Show("Такой логин уже есть в базе!", 
+                        MessageBox.Show("Сотрудник с таким логином уже есть в базе!",
                             "Ошибка!",
                             MessageBoxButton.OK,
                             MessageBoxImage.Error
                             );
+                        dialog = new(employee);
                         continue;
                     }
                     IsEnabledInterface = false;
                     VisibilityProcess = Visibility.Visible;
-                    Text = "Идет процесс изменения данных сотрудника. Пожалуйста подождите.";
+                    Text = "Идет процесс сохранения нового сотрудника. Пожалуйста подождите.";
                     await SendMessageServer.SendAddNewEmployeeMessage(_server, employee);
-                    return;
+                    break;
                 }
                 else
-                    return;
+                    break;
             }
         }
 
@@ -198,41 +203,41 @@ namespace AdminClient {
             if (SelectedEmployee is null)
                 return;
             Employee employee = SelectedEmployee;
+
+            AddEditEmployeeWindow dialog = new(employee);
             while (true) {
-                AddEditEmployeeWindow dialog = new(employee);
-               
                 if (dialog.ShowDialog() == true) {
                     employee = dialog.ViewModel.Employee;
                     if (!IsEmailCorrect(employee)) {
-                        MessageBox.Show(
-                            "Такой с таким email уже существует в базе!",
+                        MessageBox.Show("Сотрудник с таким email уже есть в базе!",
                             "Ошибка!",
                             MessageBoxButton.OK,
                             MessageBoxImage.Error
                             );
+                        dialog = new(employee);
                         continue;
                     }
                     if (!IsLoginCorrect(employee)) {
-                        MessageBox.Show(
-                            "Сотрудник с таким логином уже существует в базе!",
+                        MessageBox.Show("Сотрудник с таким логином уже есть в базе!",
                             "Ошибка!",
                             MessageBoxButton.OK,
                             MessageBoxImage.Error
                             );
+                        dialog = new(employee);
                         continue;
                     }
                     IsEnabledInterface = false;
                     VisibilityProcess = Visibility.Visible;
                     Text = "Идет процесс изменения данных сотрудника. Пожалуйста подождите.";
                     await SendMessageServer.SendEditEmployeeMessage(_server, employee);
-                    return;
+                    break;
                 }
                 else
-                    return;
+                    break;
             }
         }
 
-       
+
 
         private async void RemoveEmployee() {
             if (SelectedEmployee is null)

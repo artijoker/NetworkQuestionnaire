@@ -10,12 +10,35 @@ using System.Threading.Tasks;
 
 namespace Server {
     class SendMessageClient {
-        public static async Task SendAuthorizationFailedMessage(TcpClient client) {
+        public static async Task SendAdminConnectSuccessfulMessage(TcpClient client) {
+            MemoryStream stream = new MemoryStream();
+            BinaryWriter writer = new BinaryWriter(stream);
+
+            writer.Write(Message.AdminConnectSuccessful);
+            byte[] buffer = stream.ToArray();
+
+            await client.GetStream().WriteAsync(buffer, 0, buffer.Length);
+        }
+
+        public static async Task SendAdminConnectFailedMessage(TcpClient client, string message) {
+            MemoryStream stream = new MemoryStream();
+            BinaryWriter writer = new BinaryWriter(stream);
+
+            writer.Write(Message.AdminConnectFailed);
+            byte[] buffer = Encoding.UTF8.GetBytes(message);
+            writer.Write(buffer.Length);
+            writer.Write(buffer);
+            buffer = stream.ToArray();
+
+            await client.GetStream().WriteAsync(buffer, 0, buffer.Length);
+        }
+
+        public static async Task SendAuthorizationFailedMessage(TcpClient client, string message) {
             MemoryStream stream = new MemoryStream();
             BinaryWriter writer = new BinaryWriter(stream);
 
             writer.Write(Message.AuthorizationFailed);
-            byte[] buffer = Encoding.UTF8.GetBytes("Ошибка! Неверный логин или пароль");
+            byte[] buffer = Encoding.UTF8.GetBytes(message);
             writer.Write(buffer.Length);
             writer.Write(buffer);
             buffer = stream.ToArray();
@@ -107,6 +130,7 @@ namespace Server {
             writer.Write(Message.SurveysСompletedEmployee);
 
             byte[] buffer = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(surveys.Select(survey => survey.ToDTO()).ToArray()));
+
             writer.Write(buffer.Length);
             writer.Write(buffer);
             buffer = stream.ToArray();

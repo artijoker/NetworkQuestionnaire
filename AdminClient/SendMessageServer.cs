@@ -10,6 +10,16 @@ using System.Threading.Tasks;
 
 namespace AdminClient {
     class SendMessageServer {
+        public static async Task SendAdminConnectMessage(TcpClient server) {
+            MemoryStream stream = new MemoryStream();
+            BinaryWriter writer = new BinaryWriter(stream);
+
+            writer.Write(Message.AdminConnect);
+            byte[] buffer = stream.ToArray();
+
+            await server.GetStream().WriteAsync(buffer, 0, buffer.Length);
+        }
+
         public static async Task SendEmployeeListMessage(TcpClient server) {
             MemoryStream stream = new MemoryStream();
             BinaryWriter writer = new BinaryWriter(stream);

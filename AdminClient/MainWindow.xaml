@@ -10,29 +10,82 @@
         MinHeight="300"
         MinWidth="190"
         Loaded="Window_Loaded">
-    <UniformGrid Rows="2">
-        <Button Command="{Binding ShowSurveysCommand}">
-            <DockPanel >
-                <Image DockPanel.Dock="Right"
+    <Grid>
+        <UniformGrid Rows="2"
+                     IsEnabled="{Binding IsEnabledInterface}">
+            <Button Command="{Binding ShowSurveysCommand}">
+                <DockPanel >
+                    <Image DockPanel.Dock="Right"
                        Margin="20"
                        Source="Image/icon_syrvey.png"/>
-                <TextBlock FontSize="30"
+                    <TextBlock FontSize="30"
                            Padding="42"
                            VerticalAlignment="Center"
                            HorizontalAlignment="Center"
                            Text="Опросы"/>
-            </DockPanel>
-        </Button>
-        <Button Command="{Binding ShowEmployeesCommand}">
-            <DockPanel>
-                <Image DockPanel.Dock="Left"
+                </DockPanel>
+            </Button>
+            <Button Command="{Binding ShowEmployeesCommand}">
+                <DockPanel>
+                    <Image DockPanel.Dock="Left"
                        Margin="20"
                        Source="Image/icon_employee.png"/>
-                <TextBlock FontSize="30" 
+                    <TextBlock FontSize="30" 
                            Margin="15 0"
                            VerticalAlignment="Center"
                            Text="Сотрудники"/>
-            </DockPanel>
-        </Button>
-    </UniformGrid>
+                </DockPanel>
+            </Button>
+        </UniformGrid>
+        <Border HorizontalAlignment="Center" 
+                VerticalAlignment="Center" 
+                BorderBrush="Black" 
+                BorderThickness="0.5"
+                Visibility="{Binding VisibilityConnectionProcess}">
+            <Grid Height="80"
+                  Background="LightCyan">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Image Grid.Column="0"
+                       HorizontalAlignment="Center" 
+                       VerticalAlignment="Center" 
+                       Source="Image/loading.png"
+                       RenderTransformOrigin="0.5,0.5"
+                       Margin ="0 5"
+                       Width="80">
+                    <Image.RenderTransform>
+                        <RotateTransform x:Name="AnimatedRotateTransform" 
+                                 Angle="0"/>
+                    </Image.RenderTransform>
+                    <Image.Triggers>
+                        <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                            <EventTrigger.Actions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation 
+                                    Storyboard.TargetName="AnimatedRotateTransform"
+                                    Storyboard.TargetProperty="Angle" 
+                                    To="360" 
+                                    Duration="0:0:2" 
+                                    RepeatBehavior="Forever"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger.Actions>
+                        </EventTrigger>
+                    </Image.Triggers>
+                </Image>
+                <TextBlock Grid.Column="1" 
+                   FontSize="15"
+                           Padding="10"
+                   TextWrapping="Wrap"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center">
+            Подключение      
+                </TextBlock>
+            </Grid>
+        </Border>
+    </Grid>
+    
 </Window>

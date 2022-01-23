@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AdminClient"
         mc:Ignorable="d"
-        Title="AddEditQuestionWindow" Height="450" Width="600"
+        Title="" Height="450" Width="600"
         FontSize="14">
     <Window.Resources>
         <Style TargetType="Button">
@@ -137,6 +137,7 @@
                     <TextBox Grid.Column="1"
                              Margin="5 0"
                              MaxLength="150"
+                             VerticalContentAlignment="Center"
                              Text="{Binding TextAnswer}"/>
                 </Grid>
             </DockPanel>

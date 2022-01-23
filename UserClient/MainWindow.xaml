@@ -6,8 +6,8 @@
         xmlns:local="clr-namespace:UserClient"
         xmlns:lib ="clr-namespace:Library;assembly=Library"
         mc:Ignorable="d"
-        Title="MainWindow" 
-        Height="570" 
+        Title="" 
+        Height="550" 
         Width="800"
         MinHeight="550"
         MinWidth="600">
@@ -79,7 +79,7 @@
                                        Text="Данные сотрудника"
                                        FontSize="23"/>
       
-                            <UniformGrid Rows ="6"  
+                            <UniformGrid Rows ="5"  
                                          Margin="10 0">
                                 <StackPanel>
                                     <TextBlock FontSize="14"

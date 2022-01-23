@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:AdminClient"
         xmlns:lib ="clr-namespace:Library;assembly=Library"
         mc:Ignorable="d"
-        Title="EmployeesWindow" Height="450" Width="800">
+        Title="" Height="450" Width="800">
     <Window.Resources>
         <Style TargetType="DataGridRow">
             <Style.Triggers>

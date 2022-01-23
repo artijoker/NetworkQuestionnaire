@@ -6,7 +6,7 @@
         xmlns:sys="clr-namespace:System;assembly=mscorlib" 
         xmlns:local="clr-namespace:AdminClient"
         mc:Ignorable="d"
-        Title="AddEditEmployeeWindow" Height="600" Width="500"
+        Title="" Height="600" Width="500"
         FontSize="20">
     <Window.Resources>
         <Style TargetType="TextBlock">

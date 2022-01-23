@@ -15,7 +15,7 @@ namespace AdminClient.QuestionViewModel {
         public FreeAnswerQuestionViewModel(Question question) {
             QuestionText = question.Text;
             IsRequired = question.IsRequired;
-            AnswerText = question.FreeAnswers.Single().EmployeeFreeAnswers.Single().Text;
+            AnswerText = question.FreeAnswers.SingleOrDefault()?.EmployeeFreeAnswers.SingleOrDefault()?.Text;
         }
        
     }

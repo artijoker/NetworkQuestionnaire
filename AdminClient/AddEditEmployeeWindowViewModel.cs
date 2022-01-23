@@ -94,7 +94,7 @@ namespace AdminClient {
             }
             if (string.IsNullOrEmpty(Employee.Login)) {
                 MessageBox.Show(
-                   "Введите логин сотрудника!",
+                   "Создайте логин сотруднику!",
                    "Внимание",
                    MessageBoxButton.OK,
                    MessageBoxImage.Warning
@@ -103,7 +103,7 @@ namespace AdminClient {
             }
             if (string.IsNullOrEmpty(Employee.Password)) {
                 MessageBox.Show(
-                   "Введите пароль сотрудника!",
+                   "Создайте пароль сотруднику!",
                    "Внимание",
                    MessageBoxButton.OK,
                    MessageBoxImage.Warning

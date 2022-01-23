@@ -13,15 +13,17 @@ using System.Net;
 
 namespace Server {
     public partial class MainWindow : Window {
-
-        private IList<TcpClient> _clients;
+        private TcpClient? _admin;
+        private IList<ConnectedEmployee> _employees;
+        private bool _isAdminConnect;
         public ObservableCollection<string> Logs { get; }
 
         public MainWindow() {
             InitializeComponent();
             DataContext = this;
             Logs = new ObservableCollection<string>();
-            _clients = new List<TcpClient>();
+            _employees = new List<ConnectedEmployee>();
+            _isAdminConnect = false;
         }
 
 
@@ -36,22 +38,51 @@ namespace Server {
         private async void ServeClients(TcpListener listener) {
             while (true) {
                 TcpClient client = await listener.AcceptTcpClientAsync();
-                lock (_clients)
-                    _clients.Add(client);
-
                 ServeClient(client);
             }
         }
 
         private async void ServeClient(TcpClient client) {
-            Dispatcher.Invoke(() => Logs.Add($"Подключился {client.Client.RemoteEndPoint} {DateTime.Now}"));
+
             try {
                 while (true) {
                     byte[] buffer = await client.ReadFromStream(1);
                     byte message = buffer[0];
 
                     if (message == Message.Authorization) {
-                        await Authorization(client);
+                        Employee? employee = await GetEmployee(client);
+                        if (employee is null) {
+                            string errorMessage = "Ошибка! Неверный логин или пароль";
+                            await SendMessageClient.SendAuthorizationFailedMessage(client, errorMessage);
+                            Logs.Add($"Пользователь {client.Client.RemoteEndPoint} ошибка при авторизации. Неверный логин или пароль.");
+                        }
+                        else if (_employees.Any(e => e.Employee.Id == employee.Id)) {
+                            string errorMessage = "Ошибка! Этот сотрудник уже сети.";
+                            await SendMessageClient.SendAuthorizationFailedMessage(client, errorMessage);
+                            Logs.Add($"Пользователь {client.Client.RemoteEndPoint} ошибка при авторизации. ");
+                        }
+                        else {
+                            await SendMessageClient.SendAuthorizationSuccessfulMessage(client, employee);
+                            Logs.Add($"Пользователь {client.Client.RemoteEndPoint} прошел авторизацию.");
+                            lock (_employees)
+                                _employees.Add(new(employee, client));
+                        }
+                    }
+                    else if (message == Message.AdminConnect) {
+                        if (!_isAdminConnect) {
+                            lock (_employees)
+                                _admin = client;
+                            _isAdminConnect = true;
+                            await SendMessageClient.SendAdminConnectSuccessfulMessage(client);
+                            Dispatcher.Invoke(() => Logs.Add($"Администратор подключился {client.Client.RemoteEndPoint} {DateTime.Now}."));
+                        }
+                        else {
+                            await SendMessageClient.SendAdminConnectFailedMessage(client, "Ошибка! Администратор уже в сети.");
+                            if (client.Client.Connected)
+                                client.Client.Shutdown(SocketShutdown.Both);
+                            client.Client.Close();
+                            return;
+                        }
                     }
                     else if (message == Message.ListSurveysNotСompletedEmployee) {
                         buffer = await client.ReadFromStream(4);
@@ -97,6 +128,7 @@ namespace Server {
                         SaveEmployeeAnswers(employeeAnswer);
 
                         await SendMessageClient.SendDataSaveSuccessMessage(client, "Данные успешно сохранены!");
+                        Logs.Add($"Пользователь {client.Client.RemoteEndPoint} прошел опрос.");
                     }
 
                     else if (message == Message.EmployeesList) {
@@ -118,6 +150,7 @@ namespace Server {
                             context.SaveChanges();
                         }
                         await SendMessageClient.SendDataSaveSuccessMessage(client, "Новый сотрудник добавлен в базу данных!");
+                        Logs.Add($"В базу добавлен новый сотрудник.");
                     }
                     else if (message == Message.EditEmployee) {
                         buffer = await client.ReadFromStream(4);
@@ -130,6 +163,7 @@ namespace Server {
                             context.SaveChanges();
                         }
                         await SendMessageClient.SendDataSaveSuccessMessage(client, "Измененые данные о сотруднике зафиксированы в базе данных!");
+                        Logs.Add($"Измененые данные о сотруднике зафиксированы в базе.");
                     }
                     else if (message == Message.RemoveEmployee) {
                         buffer = await client.ReadFromStream(4);
@@ -142,6 +176,7 @@ namespace Server {
                             context.SaveChanges();
                         }
                         await SendMessageClient.SendDataSaveSuccessMessage(client, "Сотрудник удален из базы данных!");
+                        Logs.Add($"Из базы удален сотрудник.");
                     }
                     else if (message == Message.SurveysСompletedEmployee) {
                         buffer = await client.ReadFromStream(4);
@@ -161,6 +196,7 @@ namespace Server {
                             context.SaveChanges();
                         }
                         await SendMessageClient.SendDataSaveSuccessMessage(client, "Новый опрос добавлен в базу данных!");
+                        Logs.Add($"В базу добавлен новый опрос.");
                     }
                     else if (message == Message.EditSurvey) {
                         buffer = await client.ReadFromStream(4);
@@ -172,6 +208,7 @@ namespace Server {
                         UpdateSurvey(survey);
 
                         await SendMessageClient.SendDataSaveSuccessMessage(client, "Измененые опрос зафиксирован в базе данных!");
+                        Logs.Add($"Измененые опрос зафиксирован в базе.");
                     }
                     else if (message == Message.RemoveSurvey) {
                         buffer = await client.ReadFromStream(4);
@@ -183,21 +220,31 @@ namespace Server {
                             context.SaveChanges();
                         }
                         await SendMessageClient.SendDataSaveSuccessMessage(client, "Опрос удален из базы данных!");
+                        Logs.Add($"Из базы удален опрос.");
                     }
 
                 }
             }
             catch (Exception) {
-                lock (_clients) {
-                    Logs.Add($"Отключился {client.Client.RemoteEndPoint} {DateTime.Now}");
-                    if (client.Client.Connected)
-                        client.Client.Shutdown(SocketShutdown.Both);
-                    client.Client.Close();
-                    _clients.Remove(client);
-                }
+                ConnectedEmployee? connectedEmployee =
+                    _employees.Where(employee => employee.Client.Client.RemoteEndPoint == client.Client.RemoteEndPoint)
+                    .SingleOrDefault();
+                if (_admin is not null && _admin.Client.RemoteEndPoint == client.Client.RemoteEndPoint)
+                    _isAdminConnect = false;
+                
+                Logs.Add($"Отключился {client.Client.RemoteEndPoint} {DateTime.Now}.");
+                if (client.Client.Connected)
+                    client.Client.Shutdown(SocketShutdown.Both);
+                client.Client.Close();
+                if (connectedEmployee is not null)
+                    lock (_employees) {
+                        _employees.Remove(connectedEmployee);
+                    }
+
+
             }
         }
-        private async Task Authorization(TcpClient client) {
+        private async Task<Employee?> GetEmployee(TcpClient client) {
             byte[] buffer = await client.ReadFromStream(4);
             byte[] key = await client.ReadFromStream(BitConverter.ToInt32(buffer, 0));
 
@@ -221,14 +268,8 @@ namespace Server {
             using (SurveysContext context = new()) {
                 employee = context.Employees.Where(employee => employee.Login == login && employee.Password == password).SingleOrDefault();
             }
-            if (employee is null) {
-                await SendMessageClient.SendAuthorizationFailedMessage(client);
-                Logs.Add($"Подключился {client.Client.RemoteEndPoint} ошибка при авторизации");
-            }
-            else {
-                await SendMessageClient.SendAuthorizationSuccessfulMessage(client, employee);
-                Logs.Add($"Подключился {client.Client.RemoteEndPoint} прошел авторизацию");
-            }
+            return employee;
+
         }
 
         private void SaveEmployeeAnswers(EmployeeSurveyAnswer employeeAnswer) {
@@ -281,39 +322,53 @@ namespace Server {
         }
 
         private Survey[] GetSurveysСompletedEmployee(int employeeId) {
+
             using (SurveysContext context = new()) {
                 return context.Surveys.Where(survey => survey.Employees.Any(employee => employee.Id == employeeId))
+                   .Include(survey => survey.Questions)
+                       .ThenInclude(question => question.Type)
                    .Include(s => s.Questions)
-                       .ThenInclude(q => q.Type)
-                   .Include(s => s.Questions)
-                       .ThenInclude(q => q.SingleAnswers)
-                           .ThenInclude(a => a.Employees.Where(e => e.Id == employeeId))
-                   .Include(s => s.Questions)
-                       .ThenInclude(q => q.MultipleAnswers)
-                           .ThenInclude(a => a.Employees.Where(e => e.Id == employeeId))
-                   .Include(s => s.Questions)
-                       .ThenInclude(q => q.FreeAnswers)
-                           .ThenInclude(a => a.EmployeeFreeAnswers.Where(e => e.EmployeeId == employeeId))
+                       .ThenInclude(question => question.SingleAnswers)
+                           .ThenInclude(a => a.Employees.Where(employee => employee.Id == employeeId))
+                   .Include(survey => survey.Questions)
+                       .ThenInclude(question => question.MultipleAnswers)
+                           .ThenInclude(answer => answer.Employees.Where(employee => employee.Id == employeeId))
+                   .Include(survey => survey.Questions)
+                       .ThenInclude(question => question.FreeAnswers)
+                           .ThenInclude(answer => answer.EmployeeFreeAnswers.Where(employee => employee.EmployeeId == employeeId))
                    .ToArray();
             }
         }
 
         private void UpdateSurvey(Survey survey) {
             using (SurveysContext context = new()) {
-                //context.Entry(surveyFromDB).CurrentValues.SetValues(survey);
+                Question[]? questions = context.Questions
+                    .Where(question => question.SurveyId == survey.Id)
+                    .ToArray();
 
-                Question[]? questions = context.Questions.Where(question => question.SurveyId == survey.Id).ToArray();
-                context.Questions.RemoveRange(questions.Where(question => !survey.Questions.Any(q => q.Id == question.Id)).ToArray());
-                context.Questions.AddRange(survey.Questions.Where(question => !context.Questions.Any(q => q.Id == question.Id)).ToArray());
+                context.Questions.RemoveRange(
+                    questions.Where(question => !survey.Questions.Any(q => q.Id == question.Id))
+                    .ToArray()
+                    );
 
-                questions = survey.Questions.Where(question => context.Questions.Any(q => q.Id == question.Id && question.Id != 0)).ToArray();
+                context.Questions.AddRange(
+                    survey.Questions.Where(question => !context.Questions.Any(q => q.Id == question.Id))
+                    .ToArray()
+                    );
 
-                foreach (Question question in questions)
-                    UpdateQuestion(context, question);
+                questions = survey.Questions.Where(
+                    question => context.Questions.Any(q => q.Id == question.Id && question.Id != 0))
+                    .ToArray();
+
+                questions.ForEach(question => UpdateQuestion(context, question));
+
 
                 Survey surveyFromDB = context.Surveys.Where(s => s.Id == survey.Id).Single();
                 surveyFromDB.Name = survey.Name;
-                Employee[]? employees = context.Employees.Include(e => e.Surveys).Where(e => e.Surveys.Any(s => s.Id == surveyFromDB.Id)).ToArray();
+                Employee[]? employees = context.Employees
+                    .Include(e => e.Surveys)
+                    .Where(e => e.Surveys.Any(s => s.Id == surveyFromDB.Id))
+                    .ToArray();
                 employees.ForEach(e => e.Surveys.Remove(surveyFromDB));
                 surveyFromDB.Employees.Clear();
 

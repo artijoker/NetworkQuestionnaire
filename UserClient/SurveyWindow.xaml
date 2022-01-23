@@ -88,10 +88,13 @@
                 <TextBlock Padding="10"
                            Text="{Binding SurveyName}"/>
             </Border>
-            <TextBlock FontSize="15"
-                       Padding="15 0"
-                       Foreground="Red"
-                       Text="* Обязательно"/>
+            <TextBlock Padding="15 0"
+                       Foreground="Red">
+                <Run FontSize="20" 
+                     Text="*"/>
+                <Run FontSize="15"
+                     Text="Обязательно"/>
+            </TextBlock>
 
         </DockPanel>
         <ListBox Margin="0 5" 
@@ -99,7 +102,6 @@
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                  VirtualizingPanel.ScrollUnit="Pixel">
             <ListBox.Resources>
-
                 <DataTemplate DataType="{x:Type questionVM:SingleAnswerQuestionViewModel}">
                     <Border Style="{StaticResource QuestionBorderStyle}">
                         <StackPanel Margin="5">
@@ -114,16 +116,15 @@
                                            Style="{StaticResource IsRequired}"
                                            Text="*"
                                            Visibility="{Binding IsRequired, 
-                                    Converter={StaticResource BoolToVisibility}}"/>
+                                           Converter={StaticResource BoolToVisibility}}"/>
                             </Grid>
                             <ListBox ItemsSource="{Binding Answers}"
-                                 ScrollViewer.IsDeferredScrollingEnabled="False"
-                                 Style="{StaticResource IgnoreMouse}">
-
+                                     ScrollViewer.IsDeferredScrollingEnabled="False"
+                                     Style="{StaticResource IgnoreMouse}">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
                                         <RadioButton GroupName="{Binding GroupId}" 
-                                                 IsChecked="{Binding IsChecked}">
+                                                     IsChecked="{Binding IsChecked}">
                                             <TextBlock Text="{Binding Answer.Text}"/>
                                         </RadioButton>
                                     </DataTemplate>
