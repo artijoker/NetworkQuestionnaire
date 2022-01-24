@@ -1,10 +1,15 @@
 ﻿using Library;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -13,8 +18,8 @@ namespace AdminClient {
         private bool _isHide;
         private bool _isClose;
         private TcpClient _server;
-        private string _ipAddress = "127.0.0.1";
-        private int _port = 56537;
+        private readonly string _ipAddress;
+        private readonly int _port;
         private bool _isEnabledInterface;
         private Visibility _visibilityConnectionProcess;
 
@@ -56,6 +61,9 @@ namespace AdminClient {
         public DelegateCommand ShowSurveysCommand { get; }
 
         public MainWindowViewModel() {
+            IConfiguration config = Host.CreateDefaultBuilder().Build().Services.GetRequiredService<IConfiguration>();
+            _ipAddress = config.GetValue<string>("IpAddress");
+            _port = config.GetValue<int>("Port");
             
             ShowEmployeesCommand = new DelegateCommand(ShowEmployees);
             ShowSurveysCommand = new DelegateCommand(ShowSurveys);

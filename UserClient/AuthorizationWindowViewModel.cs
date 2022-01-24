@@ -1,4 +1,7 @@
 ﻿using Library;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -18,8 +21,8 @@ namespace UserClient {
         private bool _isEnabledInterface;
         private Visibility _visibilityAuthorizationProcess;
         private TcpClient _server;
-        private string _ipAddress = "127.0.0.1";
-        private int _port = 56537;
+        private readonly string _ipAddress;
+        private readonly int _port;
 
         public event PropertyChangedEventHandler PropertyChanged;
         
@@ -74,7 +77,9 @@ namespace UserClient {
 
         public AuthorizationWindowViewModel() {
             EnterCommand = new DelegateCommand(Enter);
-            
+            IConfiguration config = Host.CreateDefaultBuilder().Build().Services.GetRequiredService<IConfiguration>();
+            _ipAddress = config.GetValue<string>("IpAddress");
+            _port = config.GetValue<int>("Port");
         }
         public void WindowLoaded() {
             try {
