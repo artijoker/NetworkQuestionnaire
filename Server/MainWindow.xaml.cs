@@ -10,6 +10,9 @@ using Library;
 using System.Net.Sockets;
 using System.Collections.ObjectModel;
 using System.Net;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Server {
     public partial class MainWindow : Window {
@@ -21,6 +24,7 @@ namespace Server {
         public MainWindow() {
             InitializeComponent();
             DataContext = this;
+
             Logs = new ObservableCollection<string>();
             _employees = new List<ConnectedEmployee>();
             _isAdminConnect = false;
@@ -28,9 +32,12 @@ namespace Server {
 
 
         private void Window_Loaded(object sender, RoutedEventArgs e) {
+            IConfiguration config = Host.CreateDefaultBuilder().Build().Services.GetRequiredService<IConfiguration>();
+            string ipAddress = config.GetValue<string>("IpAddress");
+            int port = config.GetValue<int>("Port");
 
-            TcpListener listener = new TcpListener(IPAddress.Parse("127.0.0.1"), 56537);
-            Title = $"IP = {"127.0.0.1"} Port = {56537}";
+            TcpListener listener = new TcpListener(IPAddress.Parse(ipAddress), port);
+            Title = $"IP = {ipAddress} Port = {port}";
             listener.Start();
             ServeClients(listener);
         }
